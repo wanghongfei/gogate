@@ -6,7 +6,7 @@ import (
 )
 
 func TestLoadRoute(t *testing.T) {
-	routeMap, err := LoadRoute("../route.yml")
+	routeMap, err := loadRoute("../route.yml")
 	if nil != err {
 		t.Error(err)
 	}
