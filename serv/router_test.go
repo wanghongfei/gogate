@@ -18,3 +18,22 @@ func TestLoadRoute(t *testing.T) {
 		return true
 	})
 }
+
+func TestRouter_Match(t *testing.T) {
+	r, _ := NewRouter("../route.yml")
+
+	result := r.Match("/user")
+	fmt.Println(result)
+	if "user-service" != result {
+		t.Errorf("/user mismatch, %s\n", result)
+	}
+
+	result = r.Match("/order")
+	fmt.Println(result)
+	if "order-service" != result {
+		t.Errorf("/order mismatch, %s\n", result)
+	}
+
+	result = r.Match("/user/dog")
+	fmt.Println(result)
+}

@@ -5,3 +5,7 @@ user-service:
 order-service:
   id: order-service
   path: /order
+
+dog-service:
+  id: dog-service
+  path: /user/dog

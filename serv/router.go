@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/wanghongfei/gogate/utils"
@@ -71,6 +72,33 @@ func (r *Router) ExtractRoute() string {
 	})
 
 	return strBuf.String()
+}
+
+/*
+* 根据uri选择一个最匹配的appId
+*
+* RETURNS:
+*	返回最匹配的appId, 如果没有返回空字符串
+*/
+func (r *Router) Match(reqPath string) string {
+	if !strings.HasSuffix(reqPath, "/") {
+		reqPath = reqPath + "/"
+	}
+
+	// 以/为分隔符, 从后向前匹配
+	// 每次循环都去掉最后一个/XXXX节点
+	term := reqPath
+	for {
+		lastSlash := strings.LastIndex(term, "/")
+		term = term[0:lastSlash]
+
+		appId, exist := r.routeMap.Load(term)
+		if exist {
+			return appId.(*ServiceInfo).Id
+		}
+	}
+
+	return ""
 }
 
 func (r *Router) refreshRoute(newRoute *sync.Map) {
