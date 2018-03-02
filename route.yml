@@ -1,0 +1,7 @@
+user-service:
+  id: user-service
+  path: /user
+
+order-service:
+  id: order-service
+  path: /order
