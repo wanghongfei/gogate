@@ -10,7 +10,7 @@ import (
 func main() {
 	fmt.Println("start gogate at 8080")
 
-	server, err := serv.NewGatewayServer("127.0.0.1", 8080, "route.yml")
+	server, err := serv.NewGatewayServer("127.0.0.1", 8080, "route.yml", 10)
 	checkErrorExit(err)
 
 	err = server.Start()

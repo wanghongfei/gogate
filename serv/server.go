@@ -18,9 +18,13 @@ type Server struct {
 	preFilters		[]filter.PreFilterFunc
 	postFilters		[]filter.PostFilterFunc
 
+	fastServ		*fasthttp.Server
+
 	// 保存每个instanceId对应的Http Client
 	proxyClients	*sync.Map
 }
+
+const MAX_CONNECTION = 5000
 
 /*
 * 创建网关服务对象
@@ -29,9 +33,10 @@ type Server struct {
 *	- host: 主机名(ip)
 *	- port: 端口
 *	- routePath: 路由配置文件路径
+*	- maxConn: 最大连接数, 0表示使用默认值
 *
 */
-func NewGatewayServer(host string, port int, routePath string) (*Server, error) {
+func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Server, error) {
 	if "" == host {
 		return nil, errors.New("invalid host")
 	}
@@ -40,22 +45,36 @@ func NewGatewayServer(host string, port int, routePath string) (*Server, error) 
 		return nil, errors.New("invalid port")
 	}
 
+	if maxConn <= 0 {
+		maxConn = MAX_CONNECTION
+	}
+
 	router, err := NewRouter(routePath)
 	if nil != err {
 		return nil, err
 	}
 
-	return &Server{
+	serv := &Server{
 		host: host,
 		port: port,
 
 		router: router,
 		proxyClients: new(sync.Map),
-	}, nil
+	}
+
+	fastServ := &fasthttp.Server{
+		Concurrency: maxConn,
+		Handler: serv.HandleRequest,
+	}
+
+	serv.fastServ = fastServ
+
+	return serv, nil
+
 }
 
 func (s *Server) Start() error {
-	return fasthttp.ListenAndServe(s.host + ":" + strconv.Itoa(s.port), s.HandleRequest)
+	return s.fastServ.ListenAndServe(s.host + ":" + strconv.Itoa(s.port))
 }
 
 func (s *Server) Shutdown() {
