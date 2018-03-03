@@ -2,8 +2,10 @@ package serv
 
 import (
 	"errors"
+	"log"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/valyala/fasthttp"
 	"github.com/wanghongfei/gogate/serv/filter"
@@ -13,17 +15,25 @@ type Server struct {
 	host			string
 	port			int
 
+	// URI路由组件
 	router 			*Router
 
 	preFilters		[]filter.PreFilterFunc
 	postFilters		[]filter.PostFilterFunc
 
+	// fasthttp对象
 	fastServ		*fasthttp.Server
 
 	// 保存每个instanceId对应的Http Client
 	proxyClients	*sync.Map
+
+	// 保存服务地址
+	// key: 服务名
+	// val: host:port数组
+	registryMap		*sync.Map
 }
 
+// 默认最大连接数
 const MAX_CONNECTION = 5000
 
 /*
@@ -49,11 +59,13 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 		maxConn = MAX_CONNECTION
 	}
 
+	// 创建router
 	router, err := NewRouter(routePath)
 	if nil != err {
 		return nil, err
 	}
 
+	// 创建Server对象
 	serv := &Server{
 		host: host,
 		port: port,
@@ -62,12 +74,16 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 		proxyClients: new(sync.Map),
 	}
 
+	// 创建FastServer对象
 	fastServ := &fasthttp.Server{
 		Concurrency: maxConn,
 		Handler: serv.HandleRequest,
 	}
 
 	serv.fastServ = fastServ
+
+	// 注册过虑器
+	serv.RegisterPreFilter(filter.ServiceMatchPreFilter)
 
 	return serv, nil
 
@@ -97,6 +113,17 @@ func (s *Server) RegisterPostFilter(postFunc filter.PostFilterFunc) {
 	s.postFilters = append(s.postFilters, postFunc)
 }
 
+func (s *Server) startRefreshRegistryInfo() {
+	ticker := time.NewTicker(5 * time.Second)
+	go func() {
+		err := refreshRegistry(s)
+		if nil != err {
+			log.Println(err)
+		}
+
+		<- ticker.C
+	}()
+}
 
 
 

@@ -1,22 +1,16 @@
 package discovery
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/ArthurHlt/go-eureka-client/eureka"
 )
 
-func QueryAll() {
+func QueryAll() ([]eureka.Application, error) {
 	apps, err := euClient.GetApplications()
 	if nil != err {
-		fmt.Println(err)
-		os.Exit(1)
+		return nil, err
 	}
 
-	for _, app := range apps.Applications {
-		fmt.Println(app)
-	}
+	return apps.Applications, nil
 }
 
 func QueryApp(appId string) ([]eureka.InstanceInfo, error) {
