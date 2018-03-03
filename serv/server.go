@@ -3,15 +3,23 @@ package serv
 import (
 	"errors"
 	"strconv"
+	"sync"
 
 	"github.com/valyala/fasthttp"
+	"github.com/wanghongfei/gogate/serv/filter"
 )
 
 type Server struct {
-	host		string
-	port		int
+	host			string
+	port			int
 
-	router 		*Router
+	router 			*Router
+
+	preFilters		[]filter.PreFilterFunc
+	postFilters		[]filter.PostFilterFunc
+
+	// 保存每个instanceId对应的Http Client
+	proxyClients	*sync.Map
 }
 
 /*
@@ -42,6 +50,7 @@ func NewGatewayServer(host string, port int, routePath string) (*Server, error) 
 		port: port,
 
 		router: router,
+		proxyClients: new(sync.Map),
 	}, nil
 }
 
@@ -59,6 +68,14 @@ func (s *Server) ReloadRoute() error {
 
 func (s *Server) ExtractRoute() string {
 	return s.router.ExtractRoute()
+}
+
+func (s *Server) RegisterPreFilter(preFunc filter.PreFilterFunc) {
+	s.preFilters = append(s.preFilters, preFunc)
+}
+
+func (s *Server) RegisterPostFilter(postFunc filter.PostFilterFunc) {
+	s.postFilters = append(s.postFilters, postFunc)
 }
 
 
