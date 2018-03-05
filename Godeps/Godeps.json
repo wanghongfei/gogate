@@ -4,6 +4,10 @@
 	"GodepVersion": "v79",
 	"Deps": [
 		{
+			"ImportPath": "code.google.com/p/log4go",
+			"Rev": "8e3ef48e0ae465f6a220d72aa861ff102c9eabb0"
+		},
+		{
 			"ImportPath": "github.com/klauspost/compress/flate",
 			"Comment": "v1.2.1-18-g8a8c9b9",
 			"Rev": "8a8c9b92f99fe49f9c13688b0ee2824bb586c972"
@@ -41,6 +45,10 @@
 			"ImportPath": "github.com/valyala/fasthttp/stackless",
 			"Comment": "v20160617-123-ge5f51c1",
 			"Rev": "e5f51c11919d4f66400334047b897ef0a94c6f3c"
+		},
+		{
+			"ImportPath": "github.com/wanghongfei/go-eureka-client/eureka",
+			"Rev": "b72e584e64cc48cc56ffbfbc6e5d0d33de418d4b"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
