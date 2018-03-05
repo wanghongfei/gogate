@@ -8,7 +8,6 @@ import (
 
 	"code.google.com/p/log4go"
 	"github.com/valyala/fasthttp"
-	"github.com/wanghongfei/gogate/serv/filter"
 )
 
 type Server struct {
@@ -16,10 +15,10 @@ type Server struct {
 	port			int
 
 	// URI路由组件
-	router 			*Router
+	Router 			*Router
 
-	preFilters		[]filter.PreFilterFunc
-	postFilters		[]filter.PostFilterFunc
+	preFilters		[]PreFilterFunc
+	postFilters		[]PostFilterFunc
 
 	// fasthttp对象
 	fastServ		*fasthttp.Server
@@ -35,7 +34,7 @@ type Server struct {
 
 // 默认最大连接数
 const MAX_CONNECTION = 5000
-const REGISTRY_REFRESH_INTERVAL = 5
+const REGISTRY_REFRESH_INTERVAL = 20
 
 /*
 * 创建网关服务对象
@@ -71,7 +70,7 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 		host: host,
 		port: port,
 
-		router: router,
+		Router: router,
 		proxyClients: new(sync.Map),
 	}
 
@@ -84,7 +83,7 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 	serv.fastServ = fastServ
 
 	// 注册过虑器
-	serv.RegisterPreFilter(filter.ServiceMatchPreFilter)
+	serv.RegisterPreFilter(ServiceMatchPreFilter)
 
 	return serv, nil
 
@@ -101,21 +100,21 @@ func (s *Server) Shutdown() {
 
 func (s *Server) ReloadRoute() error {
 	log4go.Info("start reloading route info")
-	err := s.router.ReloadRoute()
+	err := s.Router.ReloadRoute()
 	log4go.Info("route info reloaded")
 
 	return err
 }
 
 func (s *Server) ExtractRoute() string {
-	return s.router.ExtractRoute()
+	return s.Router.ExtractRoute()
 }
 
-func (s *Server) RegisterPreFilter(preFunc filter.PreFilterFunc) {
+func (s *Server) RegisterPreFilter(preFunc PreFilterFunc) {
 	s.preFilters = append(s.preFilters, preFunc)
 }
 
-func (s *Server) RegisterPostFilter(postFunc filter.PostFilterFunc) {
+func (s *Server) RegisterPostFilter(postFunc PostFilterFunc) {
 	s.postFilters = append(s.postFilters, postFunc)
 }
 

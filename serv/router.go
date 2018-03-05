@@ -85,11 +85,19 @@ func (r *Router) Match(reqPath string) string {
 		reqPath = reqPath + "/"
 	}
 
+	if "/" == reqPath {
+		reqPath = "//"
+	}
+
 	// 以/为分隔符, 从后向前匹配
 	// 每次循环都去掉最后一个/XXXX节点
 	term := reqPath
 	for {
 		lastSlash := strings.LastIndex(term, "/")
+		if 0 == lastSlash {
+			break
+		}
+
 		term = term[0:lastSlash]
 
 		appId, exist := r.routeMap.Load(term)
