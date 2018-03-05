@@ -1,6 +1,6 @@
 package discovery
 
-import "github.com/ArthurHlt/go-eureka-client/eureka"
+import "github.com/wanghongfei/go-eureka-client/eureka"
 
 var euClient *eureka.Client
 

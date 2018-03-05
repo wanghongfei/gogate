@@ -1,7 +1,7 @@
 package discovery
 
 import (
-	"github.com/ArthurHlt/go-eureka-client/eureka"
+	"github.com/wanghongfei/go-eureka-client/eureka"
 )
 
 func QueryAll() ([]eureka.Application, error) {

@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"code.google.com/p/log4go"
-	"github.com/ArthurHlt/go-eureka-client/eureka"
 	"github.com/valyala/fasthttp"
+	"github.com/wanghongfei/go-eureka-client/eureka"
 	"github.com/wanghongfei/gogate/discovery"
 	"github.com/wanghongfei/gogate/utils"
 )
