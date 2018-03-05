@@ -2,10 +2,12 @@ package serv
 
 import (
 	"errors"
+	"strconv"
 	"time"
 
 	"code.google.com/p/log4go"
 	"github.com/valyala/fasthttp"
+	"github.com/wanghongfei/gogate/utils"
 )
 
 const (
@@ -19,6 +21,8 @@ func (s *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	// 取出请求path
 	path := string(ctx.Path())
 	ctx.SetUserValue(REQUEST_PATH, path)
+
+	log4go.Info("request received: %s %s", string(ctx.Method()), path)
 
 	// 处理reload请求
 	if path == RELOAD_PATH {
@@ -41,12 +45,15 @@ func (s *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	// 发请求
+	sw := utils.NewStopwatch()
 	resp, err := s.sendRequest(ctx, newReq)
 	if nil != err {
 		log4go.Error(err)
 		ctx.WriteString(err.Error())
 		return
 	}
+	resp.Header.Add("Time", strconv.FormatInt(sw.Record(), 10))
 
 	// 调用Post过虑器
 	ok = invokePostFilters(s.postFilters, newReq, resp)

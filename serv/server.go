@@ -83,6 +83,7 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 	fastServ := &fasthttp.Server{
 		Concurrency: maxConn,
 		Handler: serv.HandleRequest,
+		LogAllErrors: true,
 	}
 
 	serv.fastServ = fastServ
