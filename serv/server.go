@@ -2,11 +2,11 @@ package serv
 
 import (
 	"errors"
-	"log"
 	"strconv"
 	"sync"
 	"time"
 
+	"code.google.com/p/log4go"
 	"github.com/valyala/fasthttp"
 	"github.com/wanghongfei/gogate/serv/filter"
 )
@@ -35,6 +35,7 @@ type Server struct {
 
 // 默认最大连接数
 const MAX_CONNECTION = 5000
+const REGISTRY_REFRESH_INTERVAL = 5
 
 /*
 * 创建网关服务对象
@@ -90,6 +91,7 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 }
 
 func (s *Server) Start() error {
+	s.startRefreshRegistryInfo()
 	return s.fastServ.ListenAndServe(s.host + ":" + strconv.Itoa(s.port))
 }
 
@@ -98,7 +100,11 @@ func (s *Server) Shutdown() {
 }
 
 func (s *Server) ReloadRoute() error {
-	return s.router.ReloadRoute()
+	log4go.Info("start reloading route info")
+	err := s.router.ReloadRoute()
+	log4go.Info("route info reloaded")
+
+	return err
 }
 
 func (s *Server) ExtractRoute() string {
@@ -114,14 +120,21 @@ func (s *Server) RegisterPostFilter(postFunc filter.PostFilterFunc) {
 }
 
 func (s *Server) startRefreshRegistryInfo() {
-	ticker := time.NewTicker(5 * time.Second)
-	go func() {
-		err := refreshRegistry(s)
-		if nil != err {
-			log.Println(err)
-		}
+	log4go.Info("refresh registry every %d sec", REGISTRY_REFRESH_INTERVAL)
 
-		<- ticker.C
+	go func() {
+		ticker := time.NewTicker(REGISTRY_REFRESH_INTERVAL * time.Second)
+
+		for {
+			log4go.Info("refresh registry started")
+			err := refreshRegistry(s)
+			if nil != err {
+				log4go.Error(err)
+			}
+			log4go.Info("done refreshing registry")
+
+			<- ticker.C
+		}
 	}()
 }
 

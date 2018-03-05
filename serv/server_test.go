@@ -7,7 +7,7 @@ import (
 )
 
 func TestServer_ReloadRoute(t *testing.T) {
-	serv, err := NewGatewayServer("127.0.0.1", 8080, "../route.yml")
+	serv, err := NewGatewayServer("127.0.0.1", 8080, "../route.yml", 50)
 	if nil != err {
 		t.Error(err)
 		return

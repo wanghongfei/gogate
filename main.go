@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"os"
 
+	"code.google.com/p/log4go"
 	"github.com/wanghongfei/gogate/serv"
 )
 
 func main() {
-	fmt.Println("start gogate at 8080")
+	log4go.Info("start gogate at :8080")
 
 	server, err := serv.NewGatewayServer("127.0.0.1", 8080, "route.yml", 10)
 	checkErrorExit(err)
