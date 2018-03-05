@@ -1,4 +1,5 @@
 user-service:
+  # eureka中的服务名
   id: user-service
   path: /user
 

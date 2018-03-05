@@ -24,17 +24,22 @@ type Server struct {
 	fastServ		*fasthttp.Server
 
 	// 保存每个instanceId对应的Http Client
+	// key: instanceId
+	// val: *LBClient
 	proxyClients	*sync.Map
 
 	// 保存服务地址
 	// key: 服务名
-	// val: host:port数组
+	// val: host:port数组, []string类型
 	registryMap		*sync.Map
 }
 
-// 默认最大连接数
-const MAX_CONNECTION = 5000
-const REGISTRY_REFRESH_INTERVAL = 20
+const (
+	// 默认最大连接数
+	MAX_CONNECTION = 5000
+	// 注册信息更新间隔, 秒
+	REGISTRY_REFRESH_INTERVAL = 20
+)
 
 /*
 * 创建网关服务对象
@@ -89,15 +94,19 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 
 }
 
+// 启动服务器
 func (s *Server) Start() error {
 	s.startRefreshRegistryInfo()
+
 	return s.fastServ.ListenAndServe(s.host + ":" + strconv.Itoa(s.port))
 }
 
+// 优雅关闭
 func (s *Server) Shutdown() {
 	// todo gracefully shutdown
 }
 
+// 更新路由配置文件
 func (s *Server) ReloadRoute() error {
 	log4go.Info("start reloading route info")
 	err := s.Router.ReloadRoute()

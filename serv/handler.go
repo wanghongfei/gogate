@@ -10,9 +10,28 @@ import (
 
 const (
 	SERVICE_NAME = "key_service_name"
+	REQUEST_PATH = "key_request_path"
+
+	RELOAD_PATH = "/_mgr/reload"
 )
 
 func (s *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
+	// 取出请求path
+	path := string(ctx.Path())
+	ctx.SetUserValue(REQUEST_PATH, path)
+
+	// 处理reload请求
+	if path == RELOAD_PATH {
+		err := s.ReloadRoute()
+		if nil != err {
+			ctx.WriteString(err.Error())
+			return
+		}
+
+		ctx.WriteString(s.ExtractRoute())
+		return
+	}
+
 	newReq := new(fasthttp.Request)
 	ctx.Request.CopyTo(newReq)
 
@@ -40,8 +59,10 @@ func (s *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 }
 
 func sendResponse(ctx *fasthttp.RequestCtx, resp *fasthttp.Response) {
+	// copy header
 	ctx.Response.Header = resp.Header
 	ctx.Response.Header.Add("proxy", "gogate")
+
 	ctx.Write(resp.Body())
 }
 
