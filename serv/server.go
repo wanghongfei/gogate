@@ -116,14 +116,17 @@ func (s *Server) ReloadRoute() error {
 	return err
 }
 
+// 将全部路由信息以字符串形式返回
 func (s *Server) ExtractRoute() string {
 	return s.Router.ExtractRoute()
 }
 
+// 注册过滤器, 追加到末尾
 func (s *Server) RegisterPreFilter(preFunc PreFilterFunc) {
 	s.preFilters = append(s.preFilters, preFunc)
 }
 
+// 注册过滤器, 追加到末尾
 func (s *Server) RegisterPostFilter(postFunc PostFilterFunc) {
 	s.postFilters = append(s.postFilters, postFunc)
 }

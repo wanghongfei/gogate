@@ -18,6 +18,7 @@ const (
 	RELOAD_PATH = "/_mgr/reload"
 )
 
+// HTTP请求处理方法
 func (s *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	// 取出请求path
 	path := string(ctx.Path())

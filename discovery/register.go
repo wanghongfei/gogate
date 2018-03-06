@@ -5,8 +5,11 @@ import "github.com/wanghongfei/go-eureka-client/eureka"
 var euClient *eureka.Client
 
 func init() {
-	euClient = eureka.NewClient([]string{
-		"http://10.150.186.11:8761/eureka",
-	})
+	c, err := eureka.NewClientFromFile("eureka.json")
+	if nil != err {
+		panic(err)
+	}
+
+	euClient = c
 }
 
