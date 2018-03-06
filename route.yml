@@ -3,14 +3,20 @@ user-service:
   id: user-service
   prefix: /user
 
-order-service:
-  id: order-service
-  prefix: /order
-
 dog-service:
   id: dog-service
   prefix: /user/dog
 
+order-service:
+  id: order-service
+  prefix: /order
+
+img-service:
+  # 如果有host, 则不查注册中心直接使用此地址
+  host: localhost:4444
+  prefix: /img
+
+# 上面都没有匹配到时
 common-service:
   id: common-service
   prefix: /

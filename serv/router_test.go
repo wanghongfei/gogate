@@ -25,22 +25,31 @@ func TestRouter_Match(t *testing.T) {
 
 	result := r.Match("/user")
 	fmt.Println(result)
-	if "user-service" != result {
+	if "user-service" != result.Id {
 		t.Errorf("/user mismatch, %s\n", result)
 	}
 
 	result = r.Match("/order")
 	fmt.Println(result)
-	if "order-service" != result {
+	if "order-service" != result.Id {
 		t.Errorf("/order mismatch, %s\n", result)
 	}
 
-	result = r.Match("/user/dog")
-	fmt.Println(result)
-
-	result = r.Match("/nomatch")
+	result = r.Match("/aaaa")
+	if "common-service" != result.Id {
+		t.Errorf("/aaaa mismatch, %s\n", result)
+	}
 	fmt.Println(result)
 
 	result = r.Match("/us")
+	if "common-service" != result.Id {
+		t.Errorf("/us mismatch, %s\n", result)
+	}
+	fmt.Println(result)
+
+	result = r.Match("/img")
+	if "http://localhost:4444" != result.Host {
+		t.Errorf("/img mismatch, %s\n", result)
+	}
 	fmt.Println(result)
 }

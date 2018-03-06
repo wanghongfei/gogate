@@ -24,6 +24,11 @@ type Router struct {
 type ServiceInfo struct {
 	Id		string
 	Prefix	string
+	Host	string
+}
+
+func (info *ServiceInfo) String() string {
+	return "prefix = " + info.Prefix + ", id = " + info.Id + ", host = " + info.Host
 }
 
 /*
@@ -81,9 +86,9 @@ func (r *Router) ExtractRoute() string {
 * 根据uri选择一个最匹配的appId
 *
 * RETURNS:
-*	返回最匹配的appId, 如果没有返回空字符串
+*	返回最匹配的ServiceInfo
 */
-func (r *Router) Match(reqPath string) string {
+func (r *Router) Match(reqPath string) *ServiceInfo {
 	if !strings.HasSuffix(reqPath, "/") {
 		reqPath = reqPath + "/"
 	}
@@ -110,11 +115,11 @@ func (r *Router) Match(reqPath string) string {
 
 		appId, exist := r.routeMap.Load(matchTerm)
 		if exist {
-			return appId.(*ServiceInfo).Id
+			return appId.(*ServiceInfo)
 		}
 	}
 
-	return ""
+	return nil
 }
 
 func (r *Router) refreshRoute(newRoute *sync.Map) {
@@ -165,8 +170,8 @@ func validateServiceInfo(info *ServiceInfo) error {
 		return errors.New("info is empty")
 	}
 
-	if "" == info.Id {
-		return errors.New("id is empty")
+	if "" == info.Id && "" == info.Host {
+		return errors.New("id and host are both empty")
 	}
 
 	if "" == info.Prefix {

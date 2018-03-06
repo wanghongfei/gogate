@@ -10,17 +10,24 @@ import (
 func ServiceMatchPreFilter(s *Server, ctx *fasthttp.RequestCtx, newRequest *fasthttp.Request) bool {
 	uri := ctx.UserValue(REQUEST_PATH).(string)
 
-	appId := s.Router.Match(uri)
-	if "" == appId {
+	servInfo := s.Router.Match(uri)
+	if nil == servInfo {
 		// 没匹配到
 		ctx.Response.SetStatusCode(404)
 		ctx.WriteString("no match")
 		return false
 	}
 
-	ctx.SetUserValue(SERVICE_NAME, strings.ToUpper(appId))
+	addr := ""
+	if "" != servInfo.Host {
+		addr = "HOST:" + servInfo.Host
+		ctx.SetUserValue(SERVICE_NAME, strings.ToUpper(addr))
 
-	log4go.Debug("%s matched to %s", uri, appId)
+	} else {
+		addr = "ID:" + servInfo.Id
+	}
+
+	log4go.Debug("%s matched to %s", uri, addr)
 
 	return true
 }
