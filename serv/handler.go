@@ -80,7 +80,7 @@ func (s *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request) (*
 
 	var c *fasthttp.LBClient
 	// 以ID开头, 表示需要从注册列表中查询地址
-	if strings.HasPrefix("ID:", info) {
+	if strings.HasPrefix(info, "ID:") {
 		// 获取Client
 		appId := info[3:]
 		client, exist := s.proxyClients.Load(appId)

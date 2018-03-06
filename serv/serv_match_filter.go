@@ -21,12 +21,12 @@ func ServiceMatchPreFilter(s *Server, ctx *fasthttp.RequestCtx, newRequest *fast
 	addr := ""
 	if "" != servInfo.Host {
 		addr = "HOST:" + servInfo.Host
-		ctx.SetUserValue(SERVICE_NAME, strings.ToUpper(addr))
 
 	} else {
 		addr = "ID:" + servInfo.Id
 	}
 
+	ctx.SetUserValue(SERVICE_NAME, strings.ToUpper(addr))
 	log4go.Debug("%s matched to %s", uri, addr)
 
 	return true
