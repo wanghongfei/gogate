@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"sync"
 )
 
@@ -10,14 +11,17 @@ import (
 * PARAMS:
 *	- baseMap: 要删除key的map
 *	- keys: 要删除的key数组
-*
-* RETURNS:
-*	集合了2个map所有元素的map指针
 */
-func DelKeys(baseMap *sync.Map, keys []interface{}) {
+func DelKeys(baseMap *sync.Map, keys []interface{}) error {
+	if nil == baseMap {
+		return errors.New("baseMap cannot be null")
+	}
+
 	for _, key := range keys {
 		baseMap.Delete(key)
 	}
+
+	return nil
 }
 
 /*
@@ -28,11 +32,17 @@ func DelKeys(baseMap *sync.Map, keys []interface{}) {
 *	- toMap: 合并后的map
 *
 */
-func MergeSyncMap(fromMap, toMap *sync.Map) {
+func MergeSyncMap(fromMap, toMap *sync.Map) error {
+	if nil == fromMap || nil == toMap {
+		return errors.New("fromMap or toMap cannot be null")
+	}
+
 	fromMap.Range(func(key, value interface{}) bool {
 		toMap.Store(key, value)
 		return true
 	})
+
+	return nil
 }
 
 /*
@@ -45,7 +55,11 @@ func MergeSyncMap(fromMap, toMap *sync.Map) {
 * RETURNS:
 *	baseMap中独有元素的key的数组
 */
-func FindExclusiveKey(baseMap, yMap *sync.Map) []interface{} {
+func FindExclusiveKey(baseMap, yMap *sync.Map) ([]interface{}, error) {
+	if nil == baseMap || nil == yMap {
+		return nil, errors.New("fromMap or toMap cannot be null")
+	}
+
 	var keys []interface{}
 	baseMap.Range(func(key, value interface{}) bool {
 		_, exist := yMap.Load(key)
@@ -56,5 +70,5 @@ func FindExclusiveKey(baseMap, yMap *sync.Map) []interface{} {
 		return true
 	})
 
-	return keys
+	return keys, nil
 }

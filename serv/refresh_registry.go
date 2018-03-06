@@ -151,7 +151,7 @@ func refreshRegistryMap(s *Server, newRegistry *sync.Map) {
 		s.registryMap = new(sync.Map)
 	}
 
-	exclusiveKeys := utils.FindExclusiveKey(s.registryMap, newRegistry)
+	exclusiveKeys, _ := utils.FindExclusiveKey(s.registryMap, newRegistry)
 	utils.DelKeys(s.registryMap, exclusiveKeys)
 	utils.MergeSyncMap(newRegistry, s.registryMap)
 }

@@ -110,7 +110,7 @@ func (r *Router) Match(reqPath string) string {
 }
 
 func (r *Router) refreshRoute(newRoute *sync.Map) {
-	exclusiveKeys := utils.FindExclusiveKey(r.routeMap, newRoute)
+	exclusiveKeys, _ := utils.FindExclusiveKey(r.routeMap, newRoute)
 	utils.DelKeys(r.routeMap, exclusiveKeys)
 	utils.MergeSyncMap(newRoute, r.routeMap)
 }
