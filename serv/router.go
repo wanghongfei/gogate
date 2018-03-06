@@ -14,13 +14,16 @@ import (
 )
 
 type Router struct {
-	routePath	string
+	// 配置文件路径
+	cfgPath		string
+
+	// path -> serviceId
 	routeMap	*sync.Map
 }
 
 type ServiceInfo struct {
 	Id		string
-	Path	string
+	Prefix	string
 }
 
 /*
@@ -38,7 +41,7 @@ func NewRouter(path string) (*Router, error) {
 
 	return &Router{
 		routeMap: routeMap,
-		routePath: path,
+		cfgPath: path,
 	}, nil
 }
 
@@ -46,7 +49,7 @@ func NewRouter(path string) (*Router, error) {
 * 重新加载路由器
 */
 func (r *Router) ReloadRoute() error {
-	newRoute, err := loadRoute(r.routePath)
+	newRoute, err := loadRoute(r.cfgPath)
 	if nil != err {
 		return err
 	}
@@ -65,7 +68,7 @@ func (r *Router) ExtractRoute() string {
 		strKey := key.(string)
 		info := value.(*ServiceInfo)
 
-		str := fmt.Sprintf("%s -> id:%s, path:%s\n", strKey, info.Id, info.Path)
+		str := fmt.Sprintf("%s -> id:%s, path:%s\n", strKey, info.Id, info.Prefix)
 		strBuf.WriteString(str)
 
 		return true
@@ -94,13 +97,18 @@ func (r *Router) Match(reqPath string) string {
 	term := reqPath
 	for {
 		lastSlash := strings.LastIndex(term, "/")
-		if 0 == lastSlash {
+		if -1 == lastSlash {
 			break
 		}
 
-		term = term[0:lastSlash]
+		matchTerm := term[0:lastSlash]
+		term = matchTerm
 
-		appId, exist := r.routeMap.Load(term)
+		if "" == matchTerm {
+			matchTerm = "/"
+		}
+
+		appId, exist := r.routeMap.Load(matchTerm)
 		if exist {
 			return appId.(*ServiceInfo).Id
 		}
@@ -146,7 +154,7 @@ func loadRoute(path string) (*sync.Map, error) {
 			return nil, errors.New("invalid config for " + name + ":" + err.Error())
 		}
 
-		routeMap.Store(info.Path, info)
+		routeMap.Store(info.Prefix, info)
 	}
 
 	return &routeMap, nil
@@ -161,7 +169,7 @@ func validateServiceInfo(info *ServiceInfo) error {
 		return errors.New("id is empty")
 	}
 
-	if "" == info.Path {
+	if "" == info.Prefix {
 		return errors.New("path is empty")
 	}
 

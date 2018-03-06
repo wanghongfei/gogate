@@ -14,7 +14,7 @@ func TestLoadRoute(t *testing.T) {
 
 	routeMap.Range(func(name, info interface{}) bool {
 		servInfo := info.(*ServiceInfo)
-		fmt.Printf("path = %v, id = %s\n", servInfo.Path, servInfo.Id)
+		fmt.Printf("path = %v, id = %s\n", servInfo.Prefix, servInfo.Id)
 
 		return true
 	})
@@ -36,5 +36,11 @@ func TestRouter_Match(t *testing.T) {
 	}
 
 	result = r.Match("/user/dog")
+	fmt.Println(result)
+
+	result = r.Match("/nomatch")
+	fmt.Println(result)
+
+	result = r.Match("/us")
 	fmt.Println(result)
 }

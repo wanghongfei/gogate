@@ -1,12 +1,16 @@
 user-service:
   # eureka中的服务名
   id: user-service
-  path: /user
+  prefix: /user
 
 order-service:
   id: order-service
-  path: /order
+  prefix: /order
 
 dog-service:
   id: dog-service
-  path: /user/dog
+  prefix: /user/dog
+
+common-service:
+  id: common-service
+  prefix: /
