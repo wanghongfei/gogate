@@ -137,6 +137,10 @@ func convertToMap(apps []eureka.Application) *sync.Map {
 		// 遍历每一个实例
 		var instances []string
 		for _, ins := range app.Instances {
+			if nil == ins.Port {
+				continue
+			}
+
 			instances = append(instances, ins.HostName + ":" + strconv.Itoa(ins.Port.Port))
 		}
 
