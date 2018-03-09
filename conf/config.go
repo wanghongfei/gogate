@@ -36,4 +36,7 @@ func init() {
 		log4go.Error(err)
 		os.Exit(1)
 	}
+
+	log4go.LoadConfiguration("log.xml")
 }
+
