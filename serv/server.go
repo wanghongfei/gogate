@@ -8,6 +8,7 @@ import (
 
 	"code.google.com/p/log4go"
 	"github.com/valyala/fasthttp"
+	"github.com/wanghongfei/gogate/discovery"
 )
 
 type Server struct {
@@ -98,6 +99,7 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 // 启动服务器
 func (s *Server) Start() error {
 	s.startRefreshRegistryInfo()
+	discovery.StartRegister()
 
 	return s.fastServ.ListenAndServe(s.host + ":" + strconv.Itoa(s.port))
 }

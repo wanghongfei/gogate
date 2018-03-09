@@ -6,6 +6,7 @@ import (
 
 	"code.google.com/p/log4go"
 	"github.com/wanghongfei/go-eureka-client/eureka"
+	"github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/utils"
 )
 
@@ -13,7 +14,7 @@ var euClient *eureka.Client
 var gogateApp *eureka.InstanceInfo
 
 func init() {
-	c, err := eureka.NewClientFromFile("eureka.json")
+	c, err := eureka.NewClientFromFile(conf.App.EurekaConfig)
 	if nil != err {
 		panic(err)
 	}
@@ -34,7 +35,7 @@ func StartRegister() {
 
 	// 注册
 	log4go.Info("register to eureka")
-	gogateApp = eureka.NewInstanceInfo(host, "gogate", ip, 8080, 30, false)
+	gogateApp = eureka.NewInstanceInfo(host, conf.App.AppName, ip, conf.App.Port, 30, false)
 	err = euClient.RegisterInstance("gogate", gogateApp)
 	if nil != err {
 		log4go.Warn("failed to register to eureka, %v", err)

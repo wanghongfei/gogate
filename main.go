@@ -5,13 +5,14 @@ import (
 	"os"
 
 	"code.google.com/p/log4go"
+	"github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/serv"
 )
 
 func main() {
-	log4go.Info("start gogate at :8080")
+	log4go.Info("start gogate at %s:%d", conf.App.Host, conf.App.Port)
 
-	server, err := serv.NewGatewayServer("127.0.0.1", 8080, "route.yml", 10000)
+	server, err := serv.NewGatewayServer(conf.App.Host, conf.App.Port, conf.App.RouteConfig, conf.App.MaxConnection)
 	checkErrorExit(err)
 
 	err = server.Start()
