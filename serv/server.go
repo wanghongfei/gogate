@@ -91,6 +91,7 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 
 	// 注册过虑器
 	serv.RegisterPreFilter(ServiceMatchPreFilter)
+	serv.RegisterPreFilter(UrlRewritePreFilter)
 
 	return serv, nil
 

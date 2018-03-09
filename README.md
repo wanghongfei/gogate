@@ -49,4 +49,6 @@ common-service:
 
 ## 使用方法
 
+可以在转发请求之前和之后添加自定义Filter来添加自定义逻辑。
+
 见`examples/usage.go`

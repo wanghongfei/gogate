@@ -14,6 +14,7 @@ import (
 const (
 	SERVICE_NAME = "key_service_name"
 	REQUEST_PATH = "key_request_path"
+	ROUTE_INFO = "key_route_info"
 
 	RELOAD_PATH = "/_mgr/reload"
 )
@@ -85,13 +86,13 @@ func sendResponse(ctx *fasthttp.RequestCtx, resp *fasthttp.Response) {
 
 func (s *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request) (*fasthttp.Response, error) {
 	// 获取服务信息
-	info := ctx.UserValue(SERVICE_NAME).(string)
+	info := ctx.UserValue(ROUTE_INFO).(*ServiceInfo)
 
 	var c *fasthttp.LBClient
-	// 以ID开头, 表示需要从注册列表中查询地址
-	if strings.HasPrefix(info, "ID:") {
+	// 需要从注册列表中查询地址
+	if info.Id != "" {
 		// 获取Client
-		appId := info[3:]
+		appId := info.Id
 		client, exist := s.proxyClients.Load(appId)
 		if !exist {
 			return nil, errors.New("no client for service " + appId)
@@ -100,8 +101,8 @@ func (s *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request) (*
 		c = client.(*fasthttp.LBClient)
 
 	} else {
-		// 以HOST开头, 表示直接使用后面的地址
-		hostList := strings.Split(info[5:], ",")
+		// 直接使用后面的地址
+		hostList := strings.Split(info.Host, ",")
 		c = &fasthttp.LBClient{
 			Clients: createClients(hostList),
 		}

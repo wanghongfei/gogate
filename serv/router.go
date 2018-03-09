@@ -22,9 +22,10 @@ type Router struct {
 }
 
 type ServiceInfo struct {
-	Id		string
-	Prefix	string
-	Host	string
+	Id				string
+	Prefix			string
+	Host			string
+	StripPrefix		bool`yaml:"strip-prefix"`
 }
 
 func (info *ServiceInfo) String() string {

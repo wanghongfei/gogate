@@ -2,6 +2,7 @@ package serv
 
 import (
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/alecthomas/log4go"
@@ -44,7 +45,7 @@ func refreshClients(serv *Server) error {
 	newCount := 0
 	// 遍历注册列表
 	serv.registryMap.Range(func(key, val interface{}) bool {
-		name := key.(string)
+		name := strings.ToLower(key.(string))
 		hosts := val.([]string)
 
 		client, exist := serv.proxyClients.Load(name)
