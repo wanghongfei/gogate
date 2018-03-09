@@ -20,8 +20,8 @@ type AppConfig struct {
 
 var App *AppConfig
 
-func init() {
-	f, err := os.Open("gogate.json")
+func LoadConfig(filename string) {
+	f, err := os.Open(filename)
 	if nil != err {
 		log4go.Error(err)
 		os.Exit(1)
@@ -37,6 +37,9 @@ func init() {
 		os.Exit(1)
 	}
 
-	log4go.LoadConfiguration("log.xml")
+}
+
+func InitLog(filename string) {
+	log4go.LoadConfiguration(filename)
 }
 

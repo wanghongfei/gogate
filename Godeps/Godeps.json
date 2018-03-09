@@ -48,7 +48,7 @@
 		},
 		{
 			"ImportPath": "github.com/wanghongfei/go-eureka-client/eureka",
-			"Rev": "b72e584e64cc48cc56ffbfbc6e5d0d33de418d4b"
+			"Rev": "c36226984094b7a4913fc8e7f287dfd2b96a14e8"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",

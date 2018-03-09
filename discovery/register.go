@@ -13,7 +13,7 @@ import (
 var euClient *eureka.Client
 var gogateApp *eureka.InstanceInfo
 
-func init() {
+func InitEurekaClient() {
 	c, err := eureka.NewClientFromFile(conf.App.EurekaConfig)
 	if nil != err {
 		panic(err)

@@ -48,7 +48,7 @@ func TestRouter_Match(t *testing.T) {
 	fmt.Println(result)
 
 	result = r.Match("/img")
-	if "http://localhost:4444" != result.Host {
+	if "localhost:4444,localhost:5555" != result.Host {
 		t.Errorf("/img mismatch, %s\n", result)
 	}
 	fmt.Println(result)
