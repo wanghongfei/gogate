@@ -45,3 +45,8 @@ common-service:
   prefix: /
 ```
 
+
+
+## 使用方法
+
+见`examples/usage.go`

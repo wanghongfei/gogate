@@ -24,7 +24,7 @@ func LoadConfig(filename string) {
 	f, err := os.Open(filename)
 	if nil != err {
 		log4go.Error(err)
-		os.Exit(1)
+		panic(err)
 	}
 	defer f.Close()
 
@@ -34,7 +34,7 @@ func LoadConfig(filename string) {
 
 	if nil != err {
 		log4go.Error(err)
-		os.Exit(1)
+		panic(err)
 	}
 
 }
