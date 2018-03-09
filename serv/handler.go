@@ -37,7 +37,8 @@ func (s *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	if path == RELOAD_PATH {
 		err := s.ReloadRoute()
 		if nil != err {
-			ctx.WriteString(err.Error())
+			log4go.Error(err)
+			NewResponse(path, err.Error()).Send(ctx)
 			return
 		}
 
@@ -59,7 +60,7 @@ func (s *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	resp, err := s.sendRequest(ctx, newReq)
 	if nil != err {
 		log4go.Error(err)
-		ctx.WriteString(err.Error())
+		NewResponse(path, err.Error()).Send(ctx)
 		return
 	}
 	resp.Header.Add("Time", strconv.FormatInt(sw.Record(), 10))
@@ -141,5 +142,6 @@ func invokePostFilters(filters []PostFilterFunc, newReq *fasthttp.Request, resp 
 }
 
 func processPanic(ctx *fasthttp.RequestCtx) {
-	ctx.SetStatusCode(500)
+	path := string(ctx.Path())
+	NewResponse(path, "system error").SendWithStatus(ctx, 500)
 }
