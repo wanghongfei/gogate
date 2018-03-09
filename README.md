@@ -1,3 +1,5 @@
+![build](https://travis-ci.org/wanghongfei/spring-cloud-gogate.svg?branch=master)
+
 # GoGate
 
 Go语言实现的Spring Cloud网关，目标是性能，即使用更少的资源达到更高的QPS。
