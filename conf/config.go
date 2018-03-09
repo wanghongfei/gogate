@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"code.google.com/p/log4go"
+	"github.com/alecthomas/log4go"
 )
 
 type AppConfig struct {

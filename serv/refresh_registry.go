@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"sync"
 
-	"code.google.com/p/log4go"
+	"github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
 	"github.com/wanghongfei/go-eureka-client/eureka"
 	"github.com/wanghongfei/gogate/discovery"

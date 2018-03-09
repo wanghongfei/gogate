@@ -4,8 +4,8 @@
 	"GodepVersion": "v79",
 	"Deps": [
 		{
-			"ImportPath": "code.google.com/p/log4go",
-			"Rev": "8e3ef48e0ae465f6a220d72aa861ff102c9eabb0"
+			"ImportPath": "github.com/alecthomas/log4go",
+			"Rev": "d146e6b86faab5f7e4d135cc63b749d74bf0d4a6"
 		},
 		{
 			"ImportPath": "github.com/klauspost/compress/flate",

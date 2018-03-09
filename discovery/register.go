@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"code.google.com/p/log4go"
+	"github.com/alecthomas/log4go"
 	"github.com/wanghongfei/go-eureka-client/eureka"
 	"github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/utils"

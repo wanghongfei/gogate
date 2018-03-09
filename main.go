@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"code.google.com/p/log4go"
+	"github.com/alecthomas/log4go"
 	"github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/serv"
 )
