@@ -12,8 +12,8 @@ order-service:
   prefix: /order
 
 img-service:
-  # 如果有host, 则不查注册中心直接使用此地址
-  host: localhost:4444
+  # 如果有host, 则不查注册中心直接使用此地址, 多个地址逗号分隔
+  host: localhost:4444,localhost:5555
   prefix: /img
 
 # 上面都没有匹配到时

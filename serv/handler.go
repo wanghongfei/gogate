@@ -20,6 +20,13 @@ const (
 
 // HTTP请求处理方法
 func (s *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
+	defer func() {
+		if r := recover(); r != nil {
+			log4go.Error(r)
+			processPanic(ctx)
+		}
+	}()
+
 	// 取出请求path
 	path := string(ctx.Path())
 	ctx.SetUserValue(REQUEST_PATH, path)
@@ -93,8 +100,9 @@ func (s *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request) (*
 
 	} else {
 		// 以HOST开头, 表示直接使用后面的地址
+		hostList := strings.Split(info[5:], ",")
 		c = &fasthttp.LBClient{
-			Clients: createClients([]string{info[5:]}),
+			Clients: createClients(hostList),
 		}
 	}
 
@@ -130,4 +138,8 @@ func invokePostFilters(filters []PostFilterFunc, newReq *fasthttp.Request, resp 
 	}
 
 	return true
+}
+
+func processPanic(ctx *fasthttp.RequestCtx) {
+	ctx.SetStatusCode(500)
 }
