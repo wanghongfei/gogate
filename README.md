@@ -18,31 +18,43 @@ Go语言实现的Spring Cloud网关，目标是性能，即使用更少的资源
 
 ## 路由配置
 
+规则:
+
+- 当`id`不为空时，会使用eureka的注册信息查询此服务的地址
+- 当`host`不为空时, 会优先使用此字段指定的服务地址, 多个地址用逗号分隔
+- 当请求路径匹配多个`prefix`时，配置文件中`prefix`最长的获胜
+
 ```yaml
 user-service:
   # eureka中的服务名
   id: user-service
   # 以/user开头的请求, 会被转发到user-service服务中
   prefix: /user
+  # 转发时是否去掉请求前缀, 即/user
+  strip-prefix: true
 
 dog-service:
   id: dog-service
   # 请求路径当匹配多个prefix时, 长的获胜
   prefix: /user/dog
+  strip-prefix: false
 
 order-service:
   id: order-service
   prefix: /order
+  strip-prefix: false
 
 img-service:
   # 如果有host, 则不查注册中心直接使用此地址, 多个地址逗号分隔
   host: localhost:4444,localhost:5555
   prefix: /img
+  strip-prefix: false
 
 # 上面都没有匹配到时
 common-service:
   id: common-service
   prefix: /
+  strip-prefix: false
 ```
 
 
