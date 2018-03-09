@@ -1,7 +1,7 @@
 package serv
 
 import (
-	"code.google.com/p/log4go"
+	"github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
 )
 
