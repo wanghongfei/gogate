@@ -1,4 +1,4 @@
-![build](https://travis-ci.org/wanghongfei/spring-cloud-gogate.svg?branch=master)
+![build](https://api.travis-ci.org/wanghongfei/gogate.svg?branch=master)
 
 # GoGate
 
