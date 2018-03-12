@@ -6,16 +6,19 @@ services:
     prefix: /user
     # 转发时是否去掉请求前缀, 即/user
     strip-prefix: true
+    # 灰度配置
     canary:
       -
-        meta: "version:1.0"
-        weight: 30
+        # 对应eurekai注册信息中元数据(metadata map)中key=version的值
+        meta: "1.0"
+        # 流量比重
+        weight: 3
       -
-        meta: "version:2.0"
-        weight: 40
+        meta: "2.0"
+        weight: 4
       -
         meta: ""
-        weight: 30
+        weight: 1
 
   dog-service:
     id: dog-service

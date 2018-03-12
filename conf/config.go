@@ -15,6 +15,7 @@ type AppConfig struct {
 	MaxConnection	int
 	// 请求超时时间, ms
 	Timeout			int
+	Version			string
 
 	EurekaConfig	string
 	RouteConfig		string

@@ -26,13 +26,19 @@ type Server struct {
 
 	// 保存每个instanceId对应的Http Client
 	// key: instanceId
-	// val: *LBClient
+	// val: *sync.Map, key = meta, val = *LBClient
 	proxyClients	*sync.Map
 
 	// 保存服务地址
-	// key: 服务名
-	// val: host:port数组, []string类型
+	// key: 服务名:版本号, 版本号为eureka注册信息中的metadata[version]值
+	// val: []*InstanceInfo
 	registryMap		*sync.Map
+}
+
+type InstanceInfo struct {
+	// host:port
+	Addr		string
+	Meta		map[string]string
 }
 
 const (
@@ -99,8 +105,8 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 
 // 启动服务器
 func (s *Server) Start() error {
-	s.startRefreshRegistryInfo()
 	discovery.StartRegister()
+	s.startRefreshRegistryInfo()
 
 	return s.fastServ.ListenAndServe(s.host + ":" + strconv.Itoa(s.port))
 }

@@ -14,6 +14,8 @@ import (
 	"github.com/wanghongfei/gogate/utils"
 )
 
+const META_VERSION = "version"
+
 // 向eureka查询注册列表, 刷新本地列表
 func refreshRegistry(serv *Server) error {
 	apps, err := discovery.QueryAll()
@@ -45,41 +47,48 @@ func refreshClients(serv *Server) error {
 
 	changeCount := 0
 	newCount := 0
+
 	// 遍历注册列表
 	serv.registryMap.Range(func(key, val interface{}) bool {
 		name := strings.ToLower(key.(string))
-		hosts := val.([]string)
+		infos := val.([]*InstanceInfo)
 
-		client, exist := serv.proxyClients.Load(name)
-		// 如果注册表中的service不存在Client
-		// 则为此服务创建Client
-		if !exist {
-			log4go.Debug("create new client for service: %s", name)
-			// 此service不存在, 创建新的
-			newClient := &fasthttp.LBClient{
-				Clients: createClients(hosts),
-				Timeout: time.Millisecond * time.Duration(conf.App.Timeout),
-			}
+		// 按版本号分组
+		groupMap := groupByVersion(name, infos)
 
-			serv.proxyClients.Store(name, newClient)
-			newCount++
-
-		} else {
-			// service存在
-			// 对比是否有变化
-			changed := isHostsChanged(client.(*fasthttp.LBClient), hosts)
-			if changed {
-				// 发生了变化
-				// 创建新的LBClient替换掉老的
-				log4go.Debug("service %s changed", name)
+		for fullname, hosts := range groupMap {
+			client, exist := serv.proxyClients.Load(fullname)
+			// 如果注册表中的service不存在Client
+			// 则为此服务创建Client
+			if !exist {
+				log4go.Debug("create new client for service: %s", name)
+				// 此service不存在, 创建新的
 				newClient := &fasthttp.LBClient{
 					Clients: createClients(hosts),
 					Timeout: time.Millisecond * time.Duration(conf.App.Timeout),
 				}
 
-				serv.proxyClients.Store(name, newClient)
-				changeCount++
+				serv.proxyClients.Store(fullname, newClient)
+				newCount++
+
+			} else {
+				// service存在
+				// 对比是否有变化
+				changed := isHostsChanged(client.(*fasthttp.LBClient), hosts)
+				if changed {
+					// 发生了变化
+					// 创建新的LBClient替换掉老的
+					log4go.Debug("service %s changed", name)
+					newClient := &fasthttp.LBClient{
+						Clients: createClients(hosts),
+						Timeout: time.Millisecond * time.Duration(conf.App.Timeout),
+					}
+
+					serv.proxyClients.Store(fullname, newClient)
+					changeCount++
+				}
 			}
+
 		}
 
 		return true
@@ -87,6 +96,25 @@ func refreshClients(serv *Server) error {
 
 	log4go.Info("%d services updated, %d services created", changeCount, newCount)
 	return nil
+}
+
+func groupByVersion(serviceName string, infos []*InstanceInfo) map[string][]string {
+	groupMap := make(map[string][]string)
+
+	for _, info := range infos {
+		var key = serviceName
+		if info.Meta != nil {
+			if ver, exist := info.Meta[META_VERSION]; exist {
+				key = serviceName + ":" + ver
+			}
+		}
+
+		hosts := groupMap[key]
+		hosts = append(hosts, info.Addr)
+		groupMap[key] = hosts
+	}
+
+	return groupMap
 }
 
 // 对比LBClient中的host与注册列表中的host有没有变化
@@ -140,14 +168,26 @@ func convertToMap(apps []eureka.Application) *sync.Map {
 		servName := app.Name
 
 		// 遍历每一个实例
-		var instances []string
+		var instances []*InstanceInfo
 		for _, ins := range app.Instances {
 			// 跳过无效实例
 			if nil == ins.Port || ins.Status != "UP" {
 				continue
 			}
 
-			instances = append(instances, ins.HostName + ":" + strconv.Itoa(ins.Port.Port))
+			addr := ins.HostName + ":" + strconv.Itoa(ins.Port.Port)
+			var meta map[string]string
+			if nil != ins.Metadata {
+				meta = ins.Metadata.Map
+			}
+
+			instances = append(
+				instances,
+				&InstanceInfo{
+					Addr: addr,
+					Meta: meta,
+				},
+			)
 		}
 
 		newAppsMap.Store(servName, instances)

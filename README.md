@@ -9,6 +9,7 @@ Go语言实现的Spring Cloud网关，目标是性能，即使用更少的资源
 - 基于Eureka的服务发现、注册
 - 请求路由、路由配置热更新
 - 负载均衡
+- 灰度发布
 
 初步测试了一下性能，结论如下：
 
@@ -24,37 +25,60 @@ Go语言实现的Spring Cloud网关，目标是性能，即使用更少的资源
 - 当`host`不为空时, 会优先使用此字段指定的服务地址, 多个地址用逗号分隔
 - 当请求路径匹配多个`prefix`时，配置文件中`prefix`最长的获胜
 
+当路由配置文件发生变动时，访问
+
+```
+GET /_mgr/reload
+```
+
+即可应用新配置。
+
 ```yaml
-user-service:
-  # eureka中的服务名
-  id: user-service
-  # 以/user开头的请求, 会被转发到user-service服务中
-  prefix: /user
-  # 转发时是否去掉请求前缀, 即/user
-  strip-prefix: true
+services:
+  user-service:
+    # eureka中的服务名
+    id: user-service
+    # 以/user开头的请求, 会被转发到user-service服务中
+    prefix: /user
+    # 转发时是否去掉请求前缀, 即/user
+    strip-prefix: true
+    # 灰度配置
+    canary:
+      -
+        # 对应eurekai注册信息中元数据(metadata map)中key=version的值
+        meta: "1.0"
+        # 流量比重
+        weight: 3
+      -
+        meta: "2.0"
+        weight: 4
+      -
+      	# 对应没有metadata的服务
+        meta: ""
+        weight: 1
 
-dog-service:
-  id: dog-service
-  # 请求路径当匹配多个prefix时, 长的获胜
-  prefix: /user/dog
-  strip-prefix: false
+  dog-service:
+    id: dog-service
+    # 请求路径当匹配多个prefix时, 长的获胜
+    prefix: /user/dog
+    strip-prefix: false
 
-order-service:
-  id: order-service
-  prefix: /order
-  strip-prefix: false
+  order-service:
+    id: order-service
+    prefix: /order
+    strip-prefix: false
 
-img-service:
-  # 如果有host, 则不查注册中心直接使用此地址, 多个地址逗号分隔
-  host: localhost:4444,localhost:5555
-  prefix: /img
-  strip-prefix: false
+  img-service:
+    # 如果有host, 则不查注册中心直接使用此地址, 多个地址逗号分隔
+    host: localhost:4444,localhost:5555
+    prefix: /img
+    strip-prefix: false
 
 # 上面都没有匹配到时
-common-service:
-  id: common-service
-  prefix: /
-  strip-prefix: false
+  common-service:
+    id: common-service
+    prefix: /
+    strip-prefix: false
 ```
 
 

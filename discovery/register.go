@@ -36,6 +36,11 @@ func StartRegister() {
 	// 注册
 	log4go.Info("register to eureka")
 	gogateApp = eureka.NewInstanceInfo(host, conf.App.AppName, ip, conf.App.Port, 30, false)
+	gogateApp.Metadata = &eureka.MetaData{
+		Class: "",
+		Map: map[string]string {"version": conf.App.Version},
+	}
+
 	err = euClient.RegisterInstance("gogate", gogateApp)
 	if nil != err {
 		log4go.Warn("failed to register to eureka, %v", err)
