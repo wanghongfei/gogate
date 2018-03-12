@@ -26,6 +26,13 @@ type ServiceInfo struct {
 	Prefix			string
 	Host			string
 	StripPrefix		bool`yaml:"strip-prefix"`
+
+	Canary			[]*CanaryInfo
+}
+
+type CanaryInfo struct {
+	Meta		string
+	Weight		int
 }
 
 func (info *ServiceInfo) String() string {
