@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
@@ -112,7 +111,7 @@ func (s *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request) (*
 
 	// 发请求
 	resp := new(fasthttp.Response)
-	err := c.DoTimeout(req, resp, time.Second * 3)
+	err := c.Do(req, resp)
 	if nil != err {
 		return nil, err
 	}
