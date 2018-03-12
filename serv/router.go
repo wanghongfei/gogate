@@ -144,7 +144,8 @@ func loadRoute(path string) (*sync.Map, error) {
 	}
 
 	// 解析yml
-	ymlMap := make(map[string]*ServiceInfo)
+	// ymlMap := make(map[string]*ServiceInfo)
+	ymlMap := make(map[string]map[string]*ServiceInfo)
 	err = yaml.UnmarshalStrict(buf, &ymlMap)
 	if nil != err {
 		return nil, err
@@ -153,7 +154,7 @@ func loadRoute(path string) (*sync.Map, error) {
 
 	// 构造 path->serviceId 映射
 	var routeMap sync.Map
-	for name, info := range ymlMap {
+	for name, info := range ymlMap["services"] {
 		// 验证
 		err = validateServiceInfo(info)
 		if nil != err {

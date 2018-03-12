@@ -2,8 +2,11 @@ package serv
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"testing"
 
+	"gopkg.in/yaml.v2"
 )
 
 func TestLoadRoute(t *testing.T) {
@@ -52,4 +55,20 @@ func TestRouter_Match(t *testing.T) {
 		t.Errorf("/img mismatch, %s\n", result)
 	}
 	fmt.Println(result)
+}
+
+func TestYaml(t *testing.T) {
+	f, err := os.Open("../route.yml")
+	if nil != err {
+		t.Error(err)
+		return
+	}
+	defer f.Close()
+
+	buf, _ := ioutil.ReadAll(f)
+
+	yamlMap := make(map[string]interface{})
+	yaml.Unmarshal(buf, &yamlMap)
+
+	fmt.Println(yamlMap["services"])
 }
