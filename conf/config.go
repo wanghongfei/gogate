@@ -13,6 +13,8 @@ type AppConfig struct {
 	Host			string
 	Port			int
 	MaxConnection	int
+	// 请求超时时间, ms
+	Timeout			int
 
 	EurekaConfig	string
 	RouteConfig		string

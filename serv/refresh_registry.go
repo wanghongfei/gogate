@@ -4,10 +4,12 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
 	"github.com/wanghongfei/go-eureka-client/eureka"
+	"github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
 	"github.com/wanghongfei/gogate/utils"
 )
@@ -56,6 +58,7 @@ func refreshClients(serv *Server) error {
 			// 此service不存在, 创建新的
 			newClient := &fasthttp.LBClient{
 				Clients: createClients(hosts),
+				Timeout: time.Millisecond * time.Duration(conf.App.Timeout),
 			}
 
 			serv.proxyClients.Store(name, newClient)
@@ -71,6 +74,7 @@ func refreshClients(serv *Server) error {
 				log4go.Debug("service %s changed", name)
 				newClient := &fasthttp.LBClient{
 					Clients: createClients(hosts),
+					Timeout: time.Millisecond * time.Duration(conf.App.Timeout),
 				}
 
 				serv.proxyClients.Store(name, newClient)

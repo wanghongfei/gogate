@@ -3,6 +3,7 @@
     "host": "127.0.0.1",
     "port": 8080,
     "maxConnection": 1000,
+    "timeout": 3000,
 
     "eurekaConfig": "eureka.json",
     "routeConfig": "route.yml"
