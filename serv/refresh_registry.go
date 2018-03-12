@@ -142,7 +142,8 @@ func convertToMap(apps []eureka.Application) *sync.Map {
 		// 遍历每一个实例
 		var instances []string
 		for _, ins := range app.Instances {
-			if nil == ins.Port {
+			// 跳过无效实例
+			if nil == ins.Port || ins.Status != "UP" {
 				continue
 			}
 
