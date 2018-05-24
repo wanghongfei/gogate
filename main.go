@@ -7,7 +7,7 @@ import (
 	"github.com/alecthomas/log4go"
 	"github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
-	"github.com/wanghongfei/gogate/serv"
+	serv "github.com/wanghongfei/gogate/server"
 )
 
 func main() {
