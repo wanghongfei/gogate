@@ -19,3 +19,14 @@ func TestRateLimiter_Acquire(t *testing.T) {
 		fmt.Println(time.Now())
 	}
 }
+
+func TestRateLimiter_TryAcquire(t *testing.T) {
+	rl := NewRateLimiter(1)
+	for {
+		pass := rl.TryAcquire()
+		if pass {
+			fmt.Println(time.Now())
+		}
+	}
+
+}

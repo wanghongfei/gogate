@@ -65,6 +65,9 @@ func (rl *RateLimiter) fillBucket() {
 	microSecondDiff := nowMicro - rl.lastGenMicro
 	// 计算应当生成的新token数
 	newTokens := microSecondDiff / rl.tokenGenMicro
+	if newTokens < 1 {
+		return
+	}
 	rl.tokenCount += int(newTokens)
 	// token总数不能超过qps值
 	if rl.tokenCount > rl.tokenPerSecond {
@@ -73,7 +76,7 @@ func (rl *RateLimiter) fillBucket() {
 
 	rl.lastGenMicro = nowMicro
 
-	// fmt.Printf("timeDiff = %v\n", timeDiff)
+	// fmt.Printf("timeDiff = %v\n", microSecondDiff)
 }
 
 func (rl *RateLimiter) consumeToken(canSleep bool) bool {
