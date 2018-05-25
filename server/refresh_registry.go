@@ -17,7 +17,7 @@ import (
 const META_VERSION = "version"
 
 // 向eureka查询注册列表, 刷新本地列表
-func refreshRegistry(serv *Server) error {
+func (serv *Server) refreshRegistry() error {
 	apps, err := discovery.QueryAll()
 	if nil != err {
 		return err
@@ -34,13 +34,13 @@ func refreshRegistry(serv *Server) error {
 
 	refreshRegistryMap(serv, newRegistryMap)
 	log4go.Info("refreshing clients")
-	refreshClients(serv)
+	serv.refreshClients()
 
 	return nil
 }
 
 // 刷新HttpClient
-func refreshClients(serv *Server) error {
+func (serv *Server) refreshClients() error {
 	if nil == serv.proxyClients {
 		serv.proxyClients = new(sync.Map)
 	}

@@ -35,8 +35,8 @@ type Server struct {
 	// val: []*InstanceInfo
 	registryMap		*sync.Map
 
-	// 服务id -> 此服务的限速器对象
-	rateLimiterMap	map[string]*throttle.RateLimiter
+	// 服务id(string) -> 此服务的限速器对象(*RateLimiter)
+	rateLimiterMap	*sync.Map
 }
 
 type InstanceInfo struct {
@@ -99,6 +99,9 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 
 	serv.fastServ = fastServ
 
+	// 创建每个服务的限速器
+	serv.rebuildRateLimiter()
+
 	// 注册过虑器
 	serv.RegisterPreFilter(ServiceMatchPreFilter)
 	serv.RegisterPreFilter(RateLimitPreFilter)
@@ -125,6 +128,7 @@ func (s *Server) Shutdown() {
 func (s *Server) ReloadRoute() error {
 	log4go.Info("start reloading route info")
 	err := s.Router.ReloadRoute()
+	s.rebuildRateLimiter()
 	log4go.Info("route info reloaded")
 
 	return err
@@ -153,7 +157,7 @@ func (s *Server) startRefreshRegistryInfo() {
 
 		for {
 			log4go.Info("refresh registry started")
-			err := refreshRegistry(s)
+			err := s.refreshRegistry()
 			if nil != err {
 				log4go.Error(err)
 			}
@@ -164,5 +168,17 @@ func (s *Server) startRefreshRegistryInfo() {
 	}()
 }
 
+func (s *Server) rebuildRateLimiter() {
+	s.rateLimiterMap = new(sync.Map)
 
+	// 创建每个服务的限速器
+	for _, info := range s.Router.ServInfos {
+		if 0 == info.Qps {
+			continue
+		}
+
+		rl := throttle.NewRateLimiter(info.Qps)
+		s.rateLimiterMap.Store(info.Id, rl)
+	}
+}
 

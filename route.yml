@@ -20,11 +20,13 @@ services:
         meta: ""
         weight: 1
 
-  dog-service:
-    id: dog-service
+  trends-service:
+    id: trends-service
     # 请求路径当匹配多个prefix时, 长的获胜
-    prefix: /user/dog
+    prefix: /trends
     strip-prefix: false
+    # 设置qps限制, 每秒最多请求数
+    qps: 1
 
   order-service:
     id: order-service

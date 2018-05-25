@@ -10,6 +10,7 @@ Go语言实现的Spring Cloud网关，目标是性能，即使用更少的资源
 - 请求路由、路由配置热更新
 - 负载均衡
 - 灰度发布
+- QPS控制
 
 初步测试了一下性能，结论如下：
 
@@ -57,11 +58,13 @@ services:
         meta: ""
         weight: 1
 
-  dog-service:
-    id: dog-service
+  trends-service:
+    id: trends-service
     # 请求路径当匹配多个prefix时, 长的获胜
-    prefix: /user/dog
+    prefix: /trends
     strip-prefix: false
+    # 设置qps限制, 每秒最多请求数
+    qps: 1
 
   order-service:
     id: order-service

@@ -19,6 +19,8 @@ type Router struct {
 
 	// path -> serviceId
 	routeMap	*sync.Map
+
+	ServInfos	[]*ServiceInfo
 }
 
 type ServiceInfo struct {
@@ -26,6 +28,7 @@ type ServiceInfo struct {
 	Prefix			string
 	Host			string
 	StripPrefix		bool`yaml:"strip-prefix"`
+	Qps				int
 
 	Canary			[]*CanaryInfo
 }
@@ -47,7 +50,7 @@ func (info *ServiceInfo) String() string {
 *
 */
 func NewRouter(path string) (*Router, error) {
-	routeMap, err := loadRoute(path)
+	routeMap, servInfos, err := loadRoute(path)
 	if nil != err {
 		return nil, err
 	}
@@ -55,6 +58,7 @@ func NewRouter(path string) (*Router, error) {
 	return &Router{
 		routeMap: routeMap,
 		cfgPath: path,
+		ServInfos: servInfos,
 	}, nil
 }
 
@@ -62,11 +66,12 @@ func NewRouter(path string) (*Router, error) {
 * 重新加载路由器
 */
 func (r *Router) ReloadRoute() error {
-	newRoute, err := loadRoute(r.cfgPath)
+	newRoute, servInfos, err := loadRoute(r.cfgPath)
 	if nil != err {
 		return err
 	}
 
+	r.ServInfos = servInfos
 	r.refreshRoute(newRoute)
 
 	return nil
@@ -136,18 +141,18 @@ func (r *Router) refreshRoute(newRoute *sync.Map) {
 	utils.MergeSyncMap(newRoute, r.routeMap)
 }
 
-func loadRoute(path string) (*sync.Map, error) {
+func loadRoute(path string) (*sync.Map, []*ServiceInfo, error) {
 	// 打开配置文件
 	routeFile, err := os.Open(path)
 	if nil != err {
-		return nil, err
+		return nil, nil, err
 	}
 	defer routeFile.Close()
 
 	// 读取
 	buf, err := ioutil.ReadAll(routeFile)
 	if nil != err {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// 解析yml
@@ -155,9 +160,10 @@ func loadRoute(path string) (*sync.Map, error) {
 	ymlMap := make(map[string]map[string]*ServiceInfo)
 	err = yaml.UnmarshalStrict(buf, &ymlMap)
 	if nil != err {
-		return nil, err
+		return nil, nil, err
 	}
 
+	servInfos := make([]*ServiceInfo, 0, 10)
 
 	// 构造 path->serviceId 映射
 	var routeMap sync.Map
@@ -165,13 +171,14 @@ func loadRoute(path string) (*sync.Map, error) {
 		// 验证
 		err = validateServiceInfo(info)
 		if nil != err {
-			return nil, errors.New("invalid config for " + name + ":" + err.Error())
+			return nil, nil, errors.New("invalid config for " + name + ":" + err.Error())
 		}
 
 		routeMap.Store(info.Prefix, info)
+		servInfos = append(servInfos, info)
 	}
 
-	return &routeMap, nil
+	return &routeMap, servInfos, nil
 }
 
 func validateServiceInfo(info *ServiceInfo) error {
