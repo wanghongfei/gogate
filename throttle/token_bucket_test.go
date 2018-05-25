@@ -13,7 +13,7 @@ func TestNewRateLimiter(t *testing.T) {
 }
 
 func TestRateLimiter_Acquire(t *testing.T) {
-	rl := NewRateLimiter(2)
+	rl := NewRateLimiter(1)
 	for {
 		rl.Acquire()
 		fmt.Println(time.Now())
