@@ -9,6 +9,7 @@ import (
 	"github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
 	"github.com/wanghongfei/gogate/discovery"
+	"github.com/wanghongfei/gogate/throttle"
 )
 
 type Server struct {
@@ -33,6 +34,9 @@ type Server struct {
 	// key: 服务名:版本号, 版本号为eureka注册信息中的metadata[version]值
 	// val: []*InstanceInfo
 	registryMap		*sync.Map
+
+	// 服务id -> 此服务的限速器对象
+	rateLimiterMap	map[string]*throttle.RateLimiter
 }
 
 type InstanceInfo struct {
@@ -45,7 +49,7 @@ const (
 	// 默认最大连接数
 	MAX_CONNECTION = 5000
 	// 注册信息更新间隔, 秒
-	REGISTRY_REFRESH_INTERVAL = 20
+	REGISTRY_REFRESH_INTERVAL = 60
 )
 
 /*
@@ -97,6 +101,7 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 
 	// 注册过虑器
 	serv.RegisterPreFilter(ServiceMatchPreFilter)
+	serv.RegisterPreFilter(RateLimitPreFilter)
 	serv.RegisterPreFilter(UrlRewritePreFilter)
 
 	return serv, nil

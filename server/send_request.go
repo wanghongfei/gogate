@@ -23,9 +23,15 @@ func (s *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request) (*
 		// 灰度, 选择版本
 		version := chooseVersion(info.Canary)
 
-		client, exist := s.proxyClients.Load(appId + ":" + version)
+		// 构造HTTP client名
+		clientName := appId
+		if "" != version {
+			clientName = clientName + ":" + version
+		}
+
+		client, exist := s.proxyClients.Load(clientName)
 		if !exist {
-			return nil, errors.New("no client for service " + appId)
+			return nil, errors.New("no client " + clientName + " for service " + appId)
 		}
 
 		c = client.(*fasthttp.LBClient)
