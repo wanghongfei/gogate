@@ -6,7 +6,7 @@ import (
 )
 
 func ServiceMatchPreFilter(s *Server, ctx *fasthttp.RequestCtx, newRequest *fasthttp.Request) bool {
-	uri := ctx.UserValue(REQUEST_PATH).(string)
+	uri := GetStringFromUserValue(ctx, REQUEST_PATH)
 
 	servInfo := s.Router.Match(uri)
 	if nil == servInfo {

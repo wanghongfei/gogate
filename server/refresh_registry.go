@@ -42,22 +42,21 @@ func (serv *Server) refreshRegistry() error {
 // 刷新HttpClient
 func (serv *Server) refreshClients() error {
 	if nil == serv.proxyClients {
-		serv.proxyClients = new(sync.Map)
+		serv.proxyClients = NewInsMetaLbClientSyncMap()
 	}
 
 	changeCount := 0
 	newCount := 0
 
 	// 遍历注册列表
-	serv.registryMap.Range(func(key, val interface{}) bool {
-		name := strings.ToLower(key.(string))
-		infos := val.([]*InstanceInfo)
+	serv.registryMap.Each(func(name string, infos []*InstanceInfo) bool {
+		name = strings.ToLower(name)
 
 		// 按版本号分组
 		groupMap := groupByVersion(name, infos)
 
 		for fullname, hosts := range groupMap {
-			client, exist := serv.proxyClients.Load(fullname)
+			client, exist := serv.proxyClients.Get(fullname)
 			// 如果注册表中的service不存在Client
 			// 则为此服务创建Client
 			if !exist {
@@ -68,13 +67,13 @@ func (serv *Server) refreshClients() error {
 					Timeout: time.Millisecond * time.Duration(conf.App.Timeout),
 				}
 
-				serv.proxyClients.Store(fullname, newClient)
+				serv.proxyClients.Put(fullname, newClient)
 				newCount++
 
 			} else {
 				// service存在
 				// 对比是否有变化
-				changed := isHostsChanged(client.(*fasthttp.LBClient), hosts)
+				changed := isHostsChanged(client, hosts)
 				if changed {
 					// 发生了变化
 					// 创建新的LBClient替换掉老的
@@ -84,7 +83,7 @@ func (serv *Server) refreshClients() error {
 						Timeout: time.Millisecond * time.Duration(conf.App.Timeout),
 					}
 
-					serv.proxyClients.Store(fullname, newClient)
+					serv.proxyClients.Put(fullname, newClient)
 					changeCount++
 				}
 			}
@@ -93,6 +92,7 @@ func (serv *Server) refreshClients() error {
 
 		return true
 	})
+
 
 	log4go.Info("%d services updated, %d services created", changeCount, newCount)
 	return nil
@@ -198,10 +198,10 @@ func convertToMap(apps []eureka.Application) *sync.Map {
 
 func refreshRegistryMap(s *Server, newRegistry *sync.Map) {
 	if nil == s.registryMap {
-		s.registryMap = new(sync.Map)
+		s.registryMap = NewInsInfoArrSyncMap()
 	}
 
-	exclusiveKeys, _ := utils.FindExclusiveKey(s.registryMap, newRegistry)
-	utils.DelKeys(s.registryMap, exclusiveKeys)
-	utils.MergeSyncMap(newRegistry, s.registryMap)
+	exclusiveKeys, _ := utils.FindExclusiveKey(s.registryMap.GetMap(), newRegistry)
+	utils.DelKeys(s.registryMap.GetMap(), exclusiveKeys)
+	utils.MergeSyncMap(newRegistry, s.registryMap.GetMap())
 }

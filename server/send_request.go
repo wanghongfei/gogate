@@ -29,12 +29,12 @@ func (s *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request) (*
 			clientName = clientName + ":" + version
 		}
 
-		client, exist := s.proxyClients.Load(clientName)
+		client, exist := s.proxyClients.Get(clientName)
 		if !exist {
 			return nil, errors.New("no client " + clientName + " for service " + appId)
 		}
 
-		c = client.(*fasthttp.LBClient)
+		c = client
 
 	} else {
 		// 直接使用后面的地址

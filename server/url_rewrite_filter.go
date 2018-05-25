@@ -6,7 +6,10 @@ import (
 )
 
 func UrlRewritePreFilter(s *Server, ctx *fasthttp.RequestCtx, newRequest *fasthttp.Request) bool {
-	info := ctx.UserValue(ROUTE_INFO).(*ServiceInfo)
+	info, ok := GetServiceInfoFromUserValue(ctx, ROUTE_INFO)
+	if !ok {
+		return true
+	}
 
 
 	if info.StripPrefix {

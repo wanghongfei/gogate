@@ -3,7 +3,6 @@ package server
 import (
 	"errors"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/alecthomas/log4go"
@@ -26,17 +25,18 @@ type Server struct {
 	fastServ		*fasthttp.Server
 
 	// 保存每个instanceId对应的Http Client
-	// key: instanceId
+	// key: instanceId(string)
 	// val: *sync.Map, key = meta, val = *LBClient
-	proxyClients	*sync.Map
+	// proxyClients	*sync.Map
+	proxyClients	*InsLbClientSyncMap
 
 	// 保存服务地址
 	// key: 服务名:版本号, 版本号为eureka注册信息中的metadata[version]值
 	// val: []*InstanceInfo
-	registryMap		*sync.Map
+	registryMap		*InsInfoArrSyncMap
 
 	// 服务id(string) -> 此服务的限速器对象(*RateLimiter)
-	rateLimiterMap	*sync.Map
+	rateLimiterMap	*RateLimiterSyncMap
 }
 
 type InstanceInfo struct {
@@ -87,7 +87,7 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 		port: port,
 
 		Router: router,
-		proxyClients: new(sync.Map),
+		proxyClients: NewInsMetaLbClientSyncMap(),
 	}
 
 	// 创建FastServer对象
@@ -169,7 +169,7 @@ func (s *Server) startRefreshRegistryInfo() {
 }
 
 func (s *Server) rebuildRateLimiter() {
-	s.rateLimiterMap = new(sync.Map)
+	s.rateLimiterMap = NewRateLimiterSyncMap()
 
 	// 创建每个服务的限速器
 	for _, info := range s.Router.ServInfos {
@@ -178,7 +178,7 @@ func (s *Server) rebuildRateLimiter() {
 		}
 
 		rl := throttle.NewRateLimiter(info.Qps)
-		s.rateLimiterMap.Store(info.Id, rl)
+		s.rateLimiterMap.Put(info.Id, rl)
 	}
 }
 
