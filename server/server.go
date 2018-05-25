@@ -26,7 +26,7 @@ type Server struct {
 
 	// 保存每个instanceId对应的Http Client
 	// key: instanceId(string)
-	// val: *sync.Map, key = meta, val = *LBClient
+	// val: *LBClient
 	// proxyClients	*sync.Map
 	proxyClients	*InsLbClientSyncMap
 
