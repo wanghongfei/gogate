@@ -17,8 +17,8 @@ type Router struct {
 	// 配置文件路径
 	cfgPath		string
 
-	// path -> serviceId
-	routeMap	*sync.Map
+	// path(string) -> *ServiceInfo
+	routeMap	*ServInfoSyncMap
 
 	ServInfos	[]*ServiceInfo
 }
@@ -72,7 +72,7 @@ func (r *Router) ReloadRoute() error {
 	}
 
 	r.ServInfos = servInfos
-	r.refreshRoute(newRoute)
+	r.refreshRoute(newRoute.GetMap())
 
 	return nil
 }
@@ -82,9 +82,7 @@ func (r *Router) ReloadRoute() error {
 */
 func (r *Router) ExtractRoute() string {
 	var strBuf bytes.Buffer
-	r.routeMap.Range(func(key, value interface{}) bool {
-		strKey := key.(string)
-		info := value.(*ServiceInfo)
+	r.routeMap.Each(func(strKey string, info *ServiceInfo) bool {
 
 		str := fmt.Sprintf("%s -> id:%s, path:%s\n", strKey, info.Id, info.Prefix)
 		strBuf.WriteString(str)
@@ -126,9 +124,9 @@ func (r *Router) Match(reqPath string) *ServiceInfo {
 			matchTerm = "/"
 		}
 
-		appId, exist := r.routeMap.Load(matchTerm)
+		appId, exist := r.routeMap.Get(matchTerm)
 		if exist {
-			return appId.(*ServiceInfo)
+			return appId
 		}
 	}
 
@@ -136,12 +134,12 @@ func (r *Router) Match(reqPath string) *ServiceInfo {
 }
 
 func (r *Router) refreshRoute(newRoute *sync.Map) {
-	exclusiveKeys, _ := utils.FindExclusiveKey(r.routeMap, newRoute)
-	utils.DelKeys(r.routeMap, exclusiveKeys)
-	utils.MergeSyncMap(newRoute, r.routeMap)
+	exclusiveKeys, _ := utils.FindExclusiveKey(r.routeMap.GetMap(), newRoute)
+	utils.DelKeys(r.routeMap.GetMap(), exclusiveKeys)
+	utils.MergeSyncMap(newRoute, r.routeMap.GetMap())
 }
 
-func loadRoute(path string) (*sync.Map, []*ServiceInfo, error) {
+func loadRoute(path string) (*ServInfoSyncMap, []*ServiceInfo, error) {
 	// 打开配置文件
 	routeFile, err := os.Open(path)
 	if nil != err {
@@ -166,7 +164,8 @@ func loadRoute(path string) (*sync.Map, []*ServiceInfo, error) {
 	servInfos := make([]*ServiceInfo, 0, 10)
 
 	// 构造 path->serviceId 映射
-	var routeMap sync.Map
+	// var routeMap sync.Map
+	routeMap := NewServInfoSyncMap()
 	for name, info := range ymlMap["services"] {
 		// 验证
 		err = validateServiceInfo(info)
@@ -174,11 +173,11 @@ func loadRoute(path string) (*sync.Map, []*ServiceInfo, error) {
 			return nil, nil, errors.New("invalid config for " + name + ":" + err.Error())
 		}
 
-		routeMap.Store(info.Prefix, info)
+		routeMap.Put(info.Prefix, info)
 		servInfos = append(servInfos, info)
 	}
 
-	return &routeMap, servInfos, nil
+	return routeMap, servInfos, nil
 }
 
 func validateServiceInfo(info *ServiceInfo) error {
