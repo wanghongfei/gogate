@@ -61,10 +61,16 @@ func (ts *TraficStat) traficAggregateRoutine() {
 	for {
 		<- ticker.C
 
-		// 统计在此时间周期里的数据之和
-		sumMap := make(map[string]*TraficInfo)
 		// 取出当前channel全部元素
 		size := len(ts.bufferChan)
+		if 0 == size {
+			// 上一个时间周期内没有元素
+			// skip
+			continue
+		}
+
+		// 统计在此时间周期里的数据之和
+		sumMap := make(map[string]*TraficInfo)
 		for ix := 0; ix < size; ix++ {
 			elem := <- ts.bufferChan
 
