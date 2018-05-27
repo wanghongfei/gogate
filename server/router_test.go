@@ -10,13 +10,12 @@ import (
 )
 
 func TestLoadRoute(t *testing.T) {
-	routeMap, err := loadRoute("../route.yml")
+	routeMap, _, err := loadRoute("../route.yml")
 	if nil != err {
 		t.Error(err)
 	}
 
-	routeMap.Range(func(name, info interface{}) bool {
-		servInfo := info.(*ServiceInfo)
+	routeMap.Each(func(name string, servInfo *ServiceInfo) bool {
 		fmt.Printf("path = %v, id = %s\n", servInfo.Prefix, servInfo.Id)
 
 		return true
