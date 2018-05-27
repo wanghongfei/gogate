@@ -2,6 +2,8 @@ package stat
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -15,7 +17,7 @@ type CsvFileTraficInfoStore struct {
 	fileMap		map[string]*os.File
 }
 
-func NewFileTraficInfoStore(logDir string) *CsvFileTraficInfoStore {
+func NewCsvFileTraficInfoStore(logDir string) *CsvFileTraficInfoStore {
 	return &CsvFileTraficInfoStore{
 		logDir: logDir,
 		fileMap: make(map[string]*os.File),
@@ -30,6 +32,23 @@ func (fs *CsvFileTraficInfoStore) Send(info *TraficInfo) error {
 	}
 
 	buf.WriteTo(f)
+
+	return nil
+}
+
+func (fs *CsvFileTraficInfoStore) Close() error {
+	errMsg := ""
+
+	for _, file := range fs.fileMap {
+		closeErr := file.Close()
+		if nil != closeErr {
+			fmt.Sprintf("%s%s;", errMsg, closeErr.Error())
+		}
+	}
+
+	if "" != errMsg {
+		return errors.New(errMsg)
+	}
 
 	return nil
 }
@@ -53,13 +72,17 @@ func (fs *CsvFileTraficInfoStore) getFile(servId string) (*os.File, error) {
 
 func (fs *CsvFileTraficInfoStore) ToCsv(info *TraficInfo) *bytes.Buffer {
 	var buf bytes.Buffer
-	buf.WriteString(info.ServiceId)
+	buf.WriteString(strconv.FormatInt(info.Timestamp, 10))
+	buf.WriteString(",")
+
 	if info.Success {
 		buf.WriteString("1")
 	} else {
 		buf.WriteString("0")
 	}
-	buf.WriteString(strconv.Itoa(info.Timestamp))
+	buf.WriteString(",")
+
+	buf.WriteString(info.ServiceId)
 	buf.WriteString("\n")
 
 	return &buf

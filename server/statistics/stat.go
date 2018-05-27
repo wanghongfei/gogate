@@ -47,12 +47,15 @@ func (ts *TraficStat) traficLogRoutine() {
 type TraficInfo struct {
 	ServiceId		string
 	Success			bool
-	Timestamp		int
+	Timestamp		int64
 }
 
 // 定义流量数据存储方式
 type TraficInfoStore interface {
+	// 发送trafic数据
 	Send(info *TraficInfo) error
+	// 清理资源
+	Close() error
 }
 
 
