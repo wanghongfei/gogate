@@ -72,14 +72,13 @@ func (fs *CsvFileTraficInfoStore) getFile(servId string) (*os.File, error) {
 
 func (fs *CsvFileTraficInfoStore) ToCsv(info *TraficInfo) *bytes.Buffer {
 	var buf bytes.Buffer
-	buf.WriteString(strconv.FormatInt(info.Timestamp, 10))
+	buf.WriteString(strconv.FormatInt(info.timestamp, 10))
 	buf.WriteString(",")
 
-	if info.Success {
-		buf.WriteString("1")
-	} else {
-		buf.WriteString("0")
-	}
+	buf.WriteString(strconv.Itoa(info.SuccessCount))
+	buf.WriteString(",")
+
+	buf.WriteString(strconv.Itoa(info.FailedCount))
 	buf.WriteString(",")
 
 	buf.WriteString(info.ServiceId)
