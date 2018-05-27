@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 )
 
 // 文件流量存储器
@@ -58,7 +59,8 @@ func (fs *CsvFileTraficInfoStore) getFile(servId string) (*os.File, error) {
 	logFile, exist := fs.fileMap[servId]
 	if !exist {
 		// 不存在则创建
-		f, err := os.OpenFile(fs.logDir + "/" + servId + ".log", os.O_CREATE | os.O_APPEND | os.O_RDWR, 0644)
+		fName := fs.genFileName(servId)
+		f, err := os.OpenFile(fName, os.O_CREATE | os.O_APPEND | os.O_RDWR, 0644)
 		if nil != err {
 			return nil, err
 		}
@@ -68,6 +70,13 @@ func (fs *CsvFileTraficInfoStore) getFile(servId string) (*os.File, error) {
 	}
 
 	return logFile, nil
+}
+
+func (fs *CsvFileTraficInfoStore) genFileName(servId string) string {
+	now := time.Now()
+	today := now.Format("20060102")
+
+	return fs.logDir + "/" + servId + "_" + today + ".log"
 }
 
 func (fs *CsvFileTraficInfoStore) ToCsv(info *TraficInfo) *bytes.Buffer {

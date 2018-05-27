@@ -21,6 +21,7 @@ type AppConfig struct {
 	RouteConfig		string
 
 	RecordTraffic	bool
+	TrafficDir		string
 }
 
 var App *AppConfig

@@ -120,7 +120,7 @@ func (s *Server) Start() error {
 	s.startRefreshRegistryInfo()
 
 	if conf.App.RecordTraffic {
-		s.trafficStat = stat.NewTrafficStat(1000, 1, stat.NewCsvFileTraficInfoStore("/tmp"))
+		s.trafficStat = stat.NewTrafficStat(1000, 1, stat.NewCsvFileTraficInfoStore(conf.App.TrafficDir))
 		s.trafficStat.StartRecordTrafic()
 	}
 

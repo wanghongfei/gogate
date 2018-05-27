@@ -9,5 +9,6 @@
     "eurekaConfig": "eureka.json",
     "routeConfig": "route.yml",
 
-    "recordTraffic": true
+    "recordTraffic": true,
+    "trafiicDir": "/tmp"
 }
