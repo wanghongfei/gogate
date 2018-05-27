@@ -19,6 +19,8 @@ type AppConfig struct {
 
 	EurekaConfig	string
 	RouteConfig		string
+
+	RecordTraffic	bool
 }
 
 var App *AppConfig

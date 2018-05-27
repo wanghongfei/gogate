@@ -7,5 +7,7 @@
     "version": "1.0",
 
     "eurekaConfig": "eureka.json",
-    "routeConfig": "route.yml"
+    "routeConfig": "route.yml",
+
+    "recordTraffic": true
 }

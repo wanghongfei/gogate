@@ -21,7 +21,7 @@ type TraficStat struct {
 // queueSize: 最大可以放多少条流量对象不会block
 // interval: 每多少秒调用一次存储对象发送这期间积累的数据
 // traficStore: 数据保存逻辑的实现, 如CsvFileTrafficStore
-func NewStraficStat(queueSize, interval int, traficStore TraficInfoStore) *TraficStat {
+func NewTrafficStat(queueSize, interval int, traficStore TraficInfoStore) *TraficStat {
 	if interval < 1 {
 		interval = 1
 	}

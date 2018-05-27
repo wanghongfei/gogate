@@ -31,7 +31,7 @@ func (s *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request) (*
 
 		client, exist := s.proxyClients.Get(clientName)
 		if !exist {
-			return nil, errors.New("no client " + clientName + " for service " + appId)
+			return nil, errors.New("no client " + clientName + " for service " + appId + ", (service is offline)")
 		}
 
 		c = client

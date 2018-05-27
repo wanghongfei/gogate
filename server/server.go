@@ -7,7 +7,9 @@ import (
 
 	"github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
+	"github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
+	"github.com/wanghongfei/gogate/server/statistics"
 	"github.com/wanghongfei/gogate/throttle"
 )
 
@@ -36,6 +38,8 @@ type Server struct {
 
 	// 服务id(string) -> 此服务的限速器对象(*RateLimiter)
 	rateLimiterMap	*RateLimiterSyncMap
+
+	trafficStat		*stat.TraficStat
 }
 
 type InstanceInfo struct {
@@ -115,6 +119,11 @@ func (s *Server) Start() error {
 	discovery.StartRegister()
 	s.startRefreshRegistryInfo()
 
+	if conf.App.RecordTraffic {
+		s.trafficStat = stat.NewTrafficStat(1000, 1, stat.NewCsvFileTraficInfoStore("/tmp"))
+		s.trafficStat.StartRecordTrafic()
+	}
+
 	return s.fastServ.ListenAndServe(s.host + ":" + strconv.Itoa(s.port))
 }
 
@@ -165,6 +174,26 @@ func (s *Server) startRefreshRegistryInfo() {
 			<- ticker.C
 		}
 	}()
+}
+
+func (s *Server) recordTraffic(ctx *fasthttp.RequestCtx, success bool) {
+	if nil != s.trafficStat {
+		servName := GetStringFromUserValue(ctx, SERVICE_NAME)
+
+		log4go.Debug("log traffic for %s", servName)
+
+		info := &stat.TraficInfo{
+			ServiceId: servName,
+		}
+		if success {
+			info.SuccessCount = 1
+		} else {
+			info.FailedCount = 1
+		}
+
+		s.trafficStat.RecordTrafic(info)
+	}
+
 }
 
 func (s *Server) rebuildRateLimiter() {

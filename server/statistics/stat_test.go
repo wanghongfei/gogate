@@ -29,8 +29,8 @@ func TestNewCsvFileTraficInfoStore(t *testing.T) {
 	}
 }
 
-func TestNewStraficStat(t *testing.T) {
-	stat := NewStraficStat(10, 1, NewCsvFileTraficInfoStore("/tmp"))
+func TestNewTraficStat(t *testing.T) {
+	stat := NewTrafficStat(10, 1, NewCsvFileTraficInfoStore("/tmp"))
 	stat.StartRecordTrafic()
 
 	ticker := time.NewTicker(time.Millisecond * 400)

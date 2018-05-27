@@ -21,7 +21,7 @@ func (s *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	defer func() {
 		if r := recover(); r != nil {
 			log4go.Error(r)
-			processPanic(ctx)
+			processPanic(ctx, s)
 		}
 	}()
 
@@ -59,8 +59,12 @@ func (s *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	if nil != err {
 		log4go.Error(err)
 		NewResponse(path, err.Error()).Send(ctx)
+
+		s.recordTraffic(ctx, false)
 		return
 	}
+	s.recordTraffic(ctx, true)
+
 	resp.Header.Add("Time", strconv.FormatInt(sw.Record(), 10))
 
 	// 调用Post过虑器
@@ -104,7 +108,11 @@ func invokePostFilters(filters []PostFilterFunc, newReq *fasthttp.Request, resp 
 	return true
 }
 
-func processPanic(ctx *fasthttp.RequestCtx) {
+func processPanic(ctx *fasthttp.RequestCtx, serv *Server) {
 	path := string(ctx.Path())
 	NewResponse(path, "system error").SendWithStatus(ctx, 500)
+
+	// 记录流量
+	serv.recordTraffic(ctx, false)
+
 }

@@ -16,6 +16,7 @@ func ServiceMatchPreFilter(s *Server, ctx *fasthttp.RequestCtx, newRequest *fast
 		return false
 	}
 	ctx.SetUserValue(ROUTE_INFO, servInfo)
+	ctx.SetUserValue(SERVICE_NAME, servInfo.Id)
 
 	log4go.Debug("%s matched to %s", uri, servInfo.Id)
 
