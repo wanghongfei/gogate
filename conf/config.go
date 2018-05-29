@@ -1,30 +1,42 @@
 package conf
 
 import (
-	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"os"
 
 	"github.com/alecthomas/log4go"
+	"gopkg.in/yaml.v2"
 )
 
-type AppConfig struct {
-	AppName			string
-	Host			string
-	Port			int
-	MaxConnection	int
-	// 请求超时时间, ms
-	Timeout			int
-	Version			string
+type GateConfig struct {
+	Version					string`yaml:"version"`
 
-	EurekaConfig	string
-	RouteConfig		string
+	ServerConfig			*ServerConfig`yaml:"server"`
 
-	RecordTraffic	bool
-	TrafficDir		string
+	EurekaConfigFile		string`yaml:"eurekaConfigFile"`
+	RouteConfigFile			string`yaml:"routeConfigFile"`
+
+	Traffic					*TrafficConfig`yaml:"traffic"`
 }
 
-var App *AppConfig
+type ServerConfig struct {
+	AppName			string`yaml:"appName"`
+	Host			string`yaml:"host"`
+	Port			int`yaml:"port"`
+	MaxConnection	int`yaml:"maxConnection"`
+	// 请求超时时间, ms
+	Timeout			int`yaml:"timeout"`
+
+}
+
+type TrafficConfig struct {
+	EnableTrafficRecord		bool`yaml:"enableTrafficRecord"`
+	TrafficLogDir			string`yaml:"trafficLogDir"`
+
+}
+
+var App *GateConfig
 
 func LoadConfig(filename string) {
 	f, err := os.Open(filename)
@@ -35,17 +47,61 @@ func LoadConfig(filename string) {
 	defer f.Close()
 
 	buf, _ := ioutil.ReadAll(f)
-	App = new(AppConfig)
-	err = json.Unmarshal(buf, App)
 
+	config := new(GateConfig)
+	err = yaml.Unmarshal(buf, config)
 	if nil != err {
 		log4go.Error(err)
 		panic(err)
 	}
 
+	validateGogateConfig(config)
 }
 
 func InitLog(filename string) {
 	log4go.LoadConfiguration(filename)
+}
+
+func validateGogateConfig(config *GateConfig) error {
+	if nil == config {
+		return errors.New("config is nil")
+	}
+
+	if config.EurekaConfigFile == "" || config.RouteConfigFile == "" {
+		return errors.New("eureka or route config file cannot be empty")
+	}
+
+	servCfg := config.ServerConfig
+	if servCfg.AppName == "" {
+		servCfg.AppName = "gogate"
+	}
+
+	if servCfg.Host == "" {
+		servCfg.Host = "127.0.0.1"
+	}
+
+	if servCfg.Port == 0 {
+		servCfg.Port = 8080
+	}
+
+	if servCfg.MaxConnection == 0 {
+		servCfg.MaxConnection = 1000
+	}
+
+	if servCfg.Timeout == 0 {
+		servCfg.Timeout = 3000
+	}
+
+
+	trafficCfg := config.Traffic
+	if trafficCfg.EnableTrafficRecord {
+		if trafficCfg.TrafficLogDir == "" {
+			trafficCfg.TrafficLogDir = "/tmp"
+		}
+	}
+
+	App = config
+
+	return nil
 }
 

@@ -14,7 +14,7 @@ var euClient *eureka.Client
 var gogateApp *eureka.InstanceInfo
 
 func InitEurekaClient() {
-	c, err := eureka.NewClientFromFile(conf.App.EurekaConfig)
+	c, err := eureka.NewClientFromFile(conf.App.EurekaConfigFile)
 	if nil != err {
 		panic(err)
 	}
@@ -35,7 +35,7 @@ func StartRegister() {
 
 	// 注册
 	log4go.Info("register to eureka")
-	gogateApp = eureka.NewInstanceInfo(host, conf.App.AppName, ip, conf.App.Port, 30, false)
+	gogateApp = eureka.NewInstanceInfo(host, conf.App.ServerConfig.AppName, ip, conf.App.ServerConfig.Port, 30, false)
 	gogateApp.Metadata = &eureka.MetaData{
 		Class: "",
 		Map: map[string]string {"version": conf.App.Version},

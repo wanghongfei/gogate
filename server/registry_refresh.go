@@ -64,7 +64,7 @@ func (serv *Server) refreshClients() error {
 				// 此service不存在, 创建新的
 				newClient := &fasthttp.LBClient{
 					Clients: createClients(hosts),
-					Timeout: time.Millisecond * time.Duration(conf.App.Timeout),
+					Timeout: time.Millisecond * time.Duration(conf.App.ServerConfig.Timeout),
 				}
 
 				serv.proxyClients.Put(fullname, newClient)
@@ -80,7 +80,7 @@ func (serv *Server) refreshClients() error {
 					log4go.Debug("service %s changed", name)
 					newClient := &fasthttp.LBClient{
 						Clients: createClients(hosts),
-						Timeout: time.Millisecond * time.Duration(conf.App.Timeout),
+						Timeout: time.Millisecond * time.Duration(conf.App.ServerConfig.Timeout),
 					}
 
 					serv.proxyClients.Put(fullname, newClient)

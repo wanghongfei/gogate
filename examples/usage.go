@@ -5,18 +5,20 @@ import (
 
 	"github.com/valyala/fasthttp"
 	"github.com/wanghongfei/gogate/conf"
-	"github.com/wanghongfei/gogate/discovery"
 	serv "github.com/wanghongfei/gogate/server"
 )
 
 func main() {
 	// 初始化
-	conf.LoadConfig("gogate.json")
-	conf.InitLog("log.xml")
-	discovery.InitEurekaClient()
+	serv.InitGogate("gogate.yml", "log.xml")
 
 	// 创建Server
-	server, err := serv.NewGatewayServer(conf.App.Host, conf.App.Port, conf.App.RouteConfig, conf.App.MaxConnection)
+	server, err := serv.NewGatewayServer(
+		conf.App.ServerConfig.Host,
+		conf.App.ServerConfig.Port,
+		conf.App.RouteConfigFile,
+		conf.App.ServerConfig.MaxConnection,
+	)
 	if nil != err {
 		fmt.Println(err)
 		return

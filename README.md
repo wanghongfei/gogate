@@ -129,23 +129,31 @@ services:
 
 ## gogate配置
 
-`gogate.json`文件:
+`gogate.yml`文件:
 
-```json
-{
-    "appName": "gogate", // 向eureka注册时使用的服务名
-    "host": "127.0.0.1",
-    "port": 8080,
-    "maxConnection": 1000, // gogate最大可接受的连接数
-    "timeout": 3000, // gogate调用后端服务超时时间, 毫秒
-    "version": "1.0",
+```yaml
+version: 1.0
 
-    "eurekaConfig": "eureka.json", // eureka配置文件名
-    "routeConfig": "route.yml", // 路由配置文件名
+server:
+  # 向eureka注册自己时使用的服务名
+  appName: gogate
+  host: 127.0.0.1
+  port: 8080
+  # gateway最大连接数
+  maxConnection: 1000
+  # gateway请求后端服务超时时间, 毫秒
+  timeout: 3000
 
-    "recordTraffic": true, // 是否开启流量记录功能
-    "trafiicDir": "/tmp" // 流量日志文件写入目录, 当recordTraffic = true时有效
-}
+# eureka配置文件名
+eurekaConfigFile: eureka.json
+# 路由配置文件名
+routeConfigFile: route.yml
+
+traffic:
+  # 是否开启流量记录功能
+  enableTrafficRecord: true
+  # 流量日志文件所在目录
+  trafficLogDir: /tmp
 ```
 
 

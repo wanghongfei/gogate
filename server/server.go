@@ -116,11 +116,12 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 
 // 启动服务器
 func (s *Server) Start() error {
+	discovery.InitEurekaClient()
 	discovery.StartRegister()
 	s.startRefreshRegistryInfo()
 
-	if conf.App.RecordTraffic {
-		s.trafficStat = stat.NewTrafficStat(1000, 1, stat.NewCsvFileTraficInfoStore(conf.App.TrafficDir))
+	if conf.App.Traffic.EnableTrafficRecord {
+		s.trafficStat = stat.NewTrafficStat(1000, 1, stat.NewCsvFileTraficInfoStore(conf.App.Traffic.TrafficLogDir))
 		s.trafficStat.StartRecordTrafic()
 	}
 

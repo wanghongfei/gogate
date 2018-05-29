@@ -6,21 +6,23 @@ import (
 
 	"github.com/alecthomas/log4go"
 	"github.com/wanghongfei/gogate/conf"
-	"github.com/wanghongfei/gogate/discovery"
 	serv "github.com/wanghongfei/gogate/server"
 )
 
 func main() {
-	conf.LoadConfig("gogate.json")
-	conf.InitLog("log.xml")
-	discovery.InitEurekaClient()
+	serv.InitGogate("gogate.yml", "log.xml")
 
-	log4go.Info("start gogate at %s:%d", conf.App.Host, conf.App.Port)
-
-	server, err := serv.NewGatewayServer(conf.App.Host, conf.App.Port, conf.App.RouteConfig, conf.App.MaxConnection)
+	server, err := serv.NewGatewayServer(
+		conf.App.ServerConfig.Host,
+		conf.App.ServerConfig.Port,
+		conf.App.RouteConfigFile,
+		conf.App.ServerConfig.MaxConnection,
+	)
 	checkErrorExit(err)
 
+	log4go.Info("started gogate at %s:%d", conf.App.ServerConfig.Host, conf.App.ServerConfig.Port)
 	err = server.Start()
+
 	checkErrorExit(err)
 }
 
