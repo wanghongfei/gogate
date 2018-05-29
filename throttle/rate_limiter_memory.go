@@ -7,7 +7,8 @@ import (
 	"time"
 )
 
-type RateLimiter struct {
+// 基于内存存储的限速器
+type MemoryRateLimiter struct {
 	// 每秒生成的token数
 	tokenPerSecond		int
 
@@ -23,12 +24,12 @@ type RateLimiter struct {
 
 // 创建限速器
 // qps: 每秒最大请求数
-func NewRateLimiter(qps int) *RateLimiter {
+func NewMemoryRateLimiter(qps int) *MemoryRateLimiter {
 	if qps < 1 {
 		qps = 1
 	}
 
-	rl := new(RateLimiter)
+	rl := new(MemoryRateLimiter)
 	rl.tokenPerSecond = qps
 	rl.mutex = new(sync.Mutex)
 	rl.tokenGenMicro = int64(int64(1000 * 1000) / int64(qps))
@@ -37,14 +38,14 @@ func NewRateLimiter(qps int) *RateLimiter {
 }
 
 // 获取token, 如果没有则block
-func (rl *RateLimiter) Acquire() {
+func (rl *MemoryRateLimiter) Acquire() {
 	rl.mutex.Lock()
 	rl.consumeToken(true)
 	rl.mutex.Unlock()
 }
 
 // 获取token, 成功返回true, 没有则返回false
-func (rl *RateLimiter) TryAcquire() bool {
+func (rl *MemoryRateLimiter) TryAcquire() bool {
 	rl.mutex.Lock()
 	got := rl.consumeToken(false)
 	rl.mutex.Unlock()
@@ -52,7 +53,7 @@ func (rl *RateLimiter) TryAcquire() bool {
 	return got
 }
 
-func (rl *RateLimiter) fillBucket() {
+func (rl *MemoryRateLimiter) fillBucket() {
 	nowMicro := time.Now().UnixNano() / 1000
 	// 如果是第一次获取, 直接填满1s的token
 	if 0 == rl.lastGenMicro {
@@ -79,7 +80,7 @@ func (rl *RateLimiter) fillBucket() {
 	// fmt.Printf("timeDiff = %v\n", microSecondDiff)
 }
 
-func (rl *RateLimiter) consumeToken(canSleep bool) bool {
+func (rl *MemoryRateLimiter) consumeToken(canSleep bool) bool {
 	for rl.tokenCount == 0 {
 		rl.fillBucket()
 		if rl.tokenCount == 0 {
@@ -95,7 +96,7 @@ func (rl *RateLimiter) consumeToken(canSleep bool) bool {
 	return true
 }
 
-func (rl *RateLimiter) String() string {
+func (rl *MemoryRateLimiter) String() string {
 	return "qps = " + strconv.Itoa(rl.tokenPerSecond) +
 		",tokenGenMicro = " + strconv.FormatInt(rl.tokenGenMicro, 10) +
 		",lastGenMicro = " + fmt.Sprintf("%v", rl.lastGenMicro) +

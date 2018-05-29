@@ -7,14 +7,14 @@ import (
 
 )
 
-func TestNewRateLimiter(t *testing.T) {
-	rl := NewRateLimiter(1000)
+func TestNewMemoryRateLimiter(t *testing.T) {
+	rl := NewMemoryRateLimiter(1000)
 	fmt.Println(rl)
 
 }
 
 func TestRateLimiter_Acquire(t *testing.T) {
-	rl := NewRateLimiter(1)
+	rl := NewMemoryRateLimiter(1)
 
 	count := 0
 	for {
@@ -31,7 +31,7 @@ func TestRateLimiter_Acquire(t *testing.T) {
 func TestRateLimiter_TryAcquire(t *testing.T) {
 	count := 0
 
-	rl := NewRateLimiter(1)
+	rl := NewMemoryRateLimiter(1)
 	for {
 		pass := rl.TryAcquire()
 		if pass {

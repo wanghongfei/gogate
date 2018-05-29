@@ -36,7 +36,7 @@ type Server struct {
 	// val: []*InstanceInfo
 	registryMap		*InsInfoArrSyncMap
 
-	// 服务id(string) -> 此服务的限速器对象(*RateLimiter)
+	// 服务id(string) -> 此服务的限速器对象(*MemoryRateLimiter)
 	rateLimiterMap	*RateLimiterSyncMap
 
 	trafficStat		*stat.TraficStat
@@ -205,7 +205,7 @@ func (s *Server) rebuildRateLimiter() {
 			continue
 		}
 
-		rl := throttle.NewRateLimiter(info.Qps)
+		rl := throttle.NewMemoryRateLimiter(info.Qps)
 		s.rateLimiterMap.Put(info.Id, rl)
 	}
 }

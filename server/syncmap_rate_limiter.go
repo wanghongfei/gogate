@@ -17,13 +17,13 @@ func NewRateLimiterSyncMap() *RateLimiterSyncMap {
 	}
 }
 
-func (rsm *RateLimiterSyncMap) Get(key string) (*throttle.RateLimiter, bool) {
+func (rsm *RateLimiterSyncMap) Get(key string) (*throttle.MemoryRateLimiter, bool) {
 	val, exist := rsm.rlMap.Load(key)
 	if !exist {
 		return nil, false
 	}
 
-	rl, ok := val.(*throttle.RateLimiter)
+	rl, ok := val.(*throttle.MemoryRateLimiter)
 	if !ok {
 		return nil, false
 	}
@@ -31,6 +31,6 @@ func (rsm *RateLimiterSyncMap) Get(key string) (*throttle.RateLimiter, bool) {
 	return rl, true
 }
 
-func (rsm *RateLimiterSyncMap) Put(key string, val *throttle.RateLimiter) {
+func (rsm *RateLimiterSyncMap) Put(key string, val *throttle.MemoryRateLimiter) {
 	rsm.rlMap.Store(key, val)
 }
