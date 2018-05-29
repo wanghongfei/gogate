@@ -10,5 +10,5 @@
     "routeConfig": "route.yml",
 
     "recordTraffic": true,
-    "trafiicDir": "/tmp"
+    "trafficDir": "/tmp"
 }

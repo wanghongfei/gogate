@@ -77,7 +77,7 @@ func (ts *TraficStat) traficAggregateRoutine() {
 			targetInfo, exist := sumMap[elem.ServiceId]
 			if !exist {
 				targetInfo = new(TraficInfo)
-				targetInfo.timestamp = time.Now().UnixNano() / 10e6
+				targetInfo.timestamp = time.Now().UnixNano() / 1e6
 				targetInfo.ServiceId = elem.ServiceId
 				sumMap[elem.ServiceId] = targetInfo
 			}
