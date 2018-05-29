@@ -89,7 +89,7 @@ services:
         meta: "2.0"
         weight: 4
       -
-      	# 对应没有metadata的服务
+        # 对应没有metadata的服务
         meta: ""
         weight: 1
 
@@ -147,3 +147,17 @@ services:
     "trafiicDir": "/tmp" // 流量日志文件写入目录, 当recordTraffic = true时有效
 }
 ```
+
+
+## 流量日志
+
+gogate会记录过去`1s`内各个微服务的请求数据，包括成功请求数和失败请求数，然后写入`/tmp/{service-id}_yyyyMMdd.log`文件中:
+
+```
+1527577563213,121,5,user-service
+```
+
+即`{毫秒时间戳},成功请求数,失败请求数,服务名`。
+
+如果在过去的1s内没有请求, 则不会向日志中写入任何数据。
+
