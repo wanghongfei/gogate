@@ -4,7 +4,11 @@
 
 Go语言实现的Spring Cloud网关，目标是性能，即使用更少的资源达到更高的QPS。
 
-目前GoGate已经实现的功能有:
+GoGate使用FastHttp库收发HTTP请求。
+
+
+
+目前已经实现的功能有:
 
 - 基于Eureka的服务发现、注册
 - 请求路由、路由配置热更新
@@ -16,6 +20,32 @@ Go语言实现的Spring Cloud网关，目标是性能，即使用更少的资源
 初步测试了一下性能，结论如下：
 
 相同的硬件环境、Zuul充分预热且关闭Hystrix的前提下，Go版的网关QPS为Zuul的2.3倍，同时内存占用仅为Zuul的十分之一(600M vs 50M)。而且Go基本上第一波请求就能达到最大QPS, zuul要预热几次才会稳定。更详细的测试近期更新。
+
+
+
+## 流程
+
+![arc](http://ovbyjzegm.bkt.clouddn.com/gogate-arc.jpg)
+
+服务路由: 根据URL匹配后端微服务
+
+流量控制: 令牌桶算法控制qps
+
+URL重写: 调整向后端服务发请求的URL
+
+转发请求: 负载均衡、按比例分配流量
+
+
+
+gogate没有提供默认的Post Filter，可根据需要自己实现相应函数。
+
+
+
+## 使用
+
+可以编译`main.go`直接生成可执行文件，也可以当一个库来使用，见`examples/usage.go`
+
+
 
 
 
@@ -84,6 +114,37 @@ services:
     prefix: /
     strip-prefix: false
 ```
+
+
+
+## Eureka配置
+
+`eureka.json`文件
+
+
+
+## gogate配置
+
+`gogate.json`文件:
+
+```json
+{
+    "appName": "gogate", // 向eureka注册时使用的服务名
+    "host": "127.0.0.1",
+    "port": 8080,
+    "maxConnection": 1000, // gogate最大可接受的连接数
+    "timeout": 3000, // gogate调用后端服务超时时间, 毫秒
+    "version": "1.0",
+
+    "eurekaConfig": "eureka.json", // eureka配置文件名
+    "routeConfig": "route.yml", // 路由配置文件名
+
+    "recordTraffic": true, // 是否开启流量记录功能
+    "trafiicDir": "/tmp" // 流量日志文件写入目录, 当recordTraffic = true时有效
+}
+```
+
+
 
 
 
