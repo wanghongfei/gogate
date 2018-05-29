@@ -43,7 +43,11 @@ gogate没有提供默认的Post Filter，可根据需要自己实现相应函数
 
 ## 使用
 
-可以编译`main.go`直接生成可执行文件，也可以当一个库来使用，见`examples/usage.go`
+可以编译`main.go`直接生成可执行文件，也可以当一个库来使用。
+
+可以在转发请求之前和之后添加自定义Filter来添加自定义逻辑。
+
+详见`examples/usage.go`
 
 
 
@@ -143,13 +147,3 @@ services:
     "trafiicDir": "/tmp" // 流量日志文件写入目录, 当recordTraffic = true时有效
 }
 ```
-
-
-
-
-
-## 使用方法
-
-可以在转发请求之前和之后添加自定义Filter来添加自定义逻辑。
-
-见`examples/usage.go`
