@@ -41,6 +41,26 @@ gogate没有提供默认的Post Filter，可根据需要自己实现相应函数
 
 
 
+## 构建
+
+Go >= 1.6; 依赖管理工具godep。
+
+将项目clone到你的`GOPATH/src`下，执行
+
+```
+godep restore
+```
+
+下载依赖, 最后
+
+```
+go build github.com/wanghongfei/gogate
+```
+
+
+
+
+
 ## 使用
 
 可以编译`main.go`直接生成可执行文件，也可以当一个库来使用。
