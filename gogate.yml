@@ -20,3 +20,7 @@ traffic:
   enableTrafficRecord: true
   # 流量日志文件所在目录
   trafficLogDir: /tmp
+
+redis:
+  enabled: false
+  addr: 127.0.0.1:6379

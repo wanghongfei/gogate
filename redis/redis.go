@@ -1,19 +1,40 @@
 package redis
 
 import (
-	"fmt"
-
-	"github.com/gomodule/redigo/redis"
+	"github.com/mediocregopher/radix.v2/cluster"
 )
 
-// for test only
-func Connect() {
-	c, err := redis.Dial("tcp", ":6379")
-	if err != nil {
-		// handle error
-		fmt.Println(err)
-		return
+type ClusterRedisClient struct {
+	addr			string
+	cluster			*cluster.Cluster
+}
+
+func NewClusterRedisClient(addr string) *ClusterRedisClient {
+	return &ClusterRedisClient{
+		addr: addr,
+	}
+}
+
+func (crd *ClusterRedisClient) GetString(key string) (string, error) {
+	resp := crd.cluster.Cmd("get", key)
+	if nil != resp.Err {
+		return "", resp.Err
 	}
 
-	defer c.Close()
+	return resp.Str()
+}
+
+func (crd *ClusterRedisClient) Close() {
+	crd.cluster.Close()
+}
+
+// for test only
+func (crd *ClusterRedisClient) Connect() error {
+	cluster, err := cluster.New(crd.addr)
+	if err != nil {
+		return err
+	}
+
+	crd.cluster = cluster
+	return nil
 }

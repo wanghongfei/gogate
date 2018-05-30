@@ -13,6 +13,7 @@ type GateConfig struct {
 	Version					string`yaml:"version"`
 
 	ServerConfig			*ServerConfig`yaml:"server"`
+	RedisConfig				*RedisConfig`yaml:"redis"`
 
 	EurekaConfigFile		string`yaml:"eurekaConfigFile"`
 	RouteConfigFile			string`yaml:"routeConfigFile"`
@@ -34,6 +35,11 @@ type TrafficConfig struct {
 	EnableTrafficRecord		bool`yaml:"enableTrafficRecord"`
 	TrafficLogDir			string`yaml:"trafficLogDir"`
 
+}
+
+type RedisConfig struct {
+	Enalbed			bool
+	Addr			string
 }
 
 var App *GateConfig
@@ -97,6 +103,13 @@ func validateGogateConfig(config *GateConfig) error {
 	if trafficCfg.EnableTrafficRecord {
 		if trafficCfg.TrafficLogDir == "" {
 			trafficCfg.TrafficLogDir = "/tmp"
+		}
+	}
+
+	rdConfig := config.RedisConfig
+	if rdConfig.Enalbed {
+		if rdConfig.Addr == "" {
+			rdConfig.Addr = "127.0.0.1:6379"
 		}
 	}
 
