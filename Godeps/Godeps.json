@@ -8,6 +8,16 @@
 			"Rev": "d146e6b86faab5f7e4d135cc63b749d74bf0d4a6"
 		},
 		{
+			"ImportPath": "github.com/gomodule/redigo/internal",
+			"Comment": "v2.0.0-2-g9352ab6",
+			"Rev": "9352ab68be133885e31a43661cc42a220cb8e821"
+		},
+		{
+			"ImportPath": "github.com/gomodule/redigo/redis",
+			"Comment": "v2.0.0-2-g9352ab6",
+			"Rev": "9352ab68be133885e31a43661cc42a220cb8e821"
+		},
+		{
 			"ImportPath": "github.com/klauspost/compress/flate",
 			"Comment": "v1.2.1-18-g8a8c9b9",
 			"Rev": "8a8c9b92f99fe49f9c13688b0ee2824bb586c972"

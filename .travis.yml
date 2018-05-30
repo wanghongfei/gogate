@@ -4,5 +4,8 @@ go:
   - "1.10.x"
   - master
 
+before_install:
+  - go get github.com/tools/godep
+
 install:
   - godep restore

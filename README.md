@@ -45,13 +45,16 @@ gogate没有提供默认的Post Filter，可根据需要自己实现相应函数
 
 Go >= 1.6; 依赖管理工具godep。
 
-将项目clone到你的`GOPATH/src`下，执行
+clone项目并下载依赖:
 
 ```
+cd ${GOPATH}/src/github.com/wanghongfei
+git clone https://github.com/wanghongfei/gogate
+
 godep restore
 ```
 
-下载依赖, 最后
+最后构建:
 
 ```
 go build github.com/wanghongfei/gogate
