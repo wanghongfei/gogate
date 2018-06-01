@@ -1,13 +1,13 @@
 package throttle
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
 	"time"
 
-	"github.com/hyperledger/fabric-samples/chaincode/pkg/errors"
 	"github.com/wanghongfei/gogate/redis"
 )
 
