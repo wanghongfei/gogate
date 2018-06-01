@@ -2,7 +2,6 @@ package throttle
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -17,6 +16,7 @@ type RedisRateLimiter struct {
 	luaCode			string
 
 	serviceId		string
+	luaArgs			[]string
 }
 
 func NewRedisRateLimiter(client *redis.RedisClient, luaPath string, qps int, serviceId string) (*RedisRateLimiter, error) {
@@ -44,11 +44,14 @@ func NewRedisRateLimiter(client *redis.RedisClient, luaPath string, qps int, ser
 	luaBuf, _ := ioutil.ReadAll(luaF)
 	luaCode := string(luaBuf)
 
+	qpsStr := strconv.Itoa(qps)
+
 	return &RedisRateLimiter{
 		client: client,
 		luaCode: luaCode,
-		qps: strconv.Itoa(qps),
+		qps: qpsStr,
 		serviceId: serviceId,
+		luaArgs: []string{serviceId, qpsStr},
 	}, nil
 }
 
@@ -64,9 +67,8 @@ func (rrl *RedisRateLimiter) Acquire() {
 }
 
 func (rrl *RedisRateLimiter) TryAcquire() bool {
-	resp, _ := rrl.client.ExeLuaInt(rrl.luaCode, nil, []string{rrl.serviceId, rrl.qps})
+	resp, _ := rrl.client.ExeLuaInt(rrl.luaCode, nil, rrl.luaArgs)
 	// resp, _ := rrl.client.ExeLuaInt(rrl.luaCode, nil, []string{rrl.serviceId, rrl.qps})
-	fmt.Println(resp)
 	return resp == 1
 }
 

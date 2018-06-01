@@ -23,7 +23,7 @@ traffic:
 
 redis:
   # 是否使用redis做限速器
-  enabled: true
+  enabled: false
   # 目前只支持单实例, 不支持cluster
   addr: 127.0.0.1:6379
   # 限速器lua代码文件
