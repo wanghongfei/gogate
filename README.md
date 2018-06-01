@@ -14,7 +14,7 @@ GoGate使用FastHttp库收发HTTP请求。
 - 请求路由、路由配置热更新
 - 负载均衡
 - 灰度发布(基于Eureka meta信息里的version字段分配流量)
-- 微服务粒度的QPS控制
+- 微服务粒度的QPS控制(有基于内存的令牌桶算法限流和Redis + Lua限流两种可选)
 - 微服务粒度的流量统计(暂时实现为记录日志到/tmp目录下)
 
 初步测试了一下性能，结论如下：
@@ -177,7 +177,22 @@ traffic:
   enableTrafficRecord: true
   # 流量日志文件所在目录
   trafficLogDir: /tmp
+
+redis:
+  # 是否使用redis做限速器
+  enabled: true
+  # 目前只支持单实例, 不支持cluster
+  addr: 127.0.0.1:6379
+  # 限速器lua代码文件
+  rateLimiterLua: lua/rate_limiter.lua
 ```
+
+
+
+## 限流器
+
+gogate有两个限流器实现, `MemoryRateLimiter`和`RedisRateLimiter`，通过`gogate.yml`配置文件里的`redis.enabled`控制。前者使用令牌桶算法实现，适用于单实例部署的场景；后者基于 Redis + Lua 实现，适用于多实例部署。但有一个限制是目前Redis只支持连接单个实例，不支持cluster。
+
 
 
 ## 流量日志
