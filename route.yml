@@ -6,6 +6,8 @@ services:
     prefix: /user
     # 转发时是否去掉请求前缀, 即/user
     strip-prefix: true
+    # 设置qps限制, 每秒最多请求数
+    qps: 1
     # 灰度配置
     canary:
       -

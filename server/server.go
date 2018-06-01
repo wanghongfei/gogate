@@ -9,6 +9,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
+	"github.com/wanghongfei/gogate/redis"
 	"github.com/wanghongfei/gogate/server/statistics"
 	"github.com/wanghongfei/gogate/throttle"
 )
@@ -206,8 +207,35 @@ func (s *Server) rebuildRateLimiter() {
 			continue
 		}
 
-		rl := throttle.NewMemoryRateLimiter(info.Qps)
-		s.rateLimiterMap.Put(info.Id, rl)
+		rl := s.createRateLimiter(info)
+		if nil != rl {
+			s.rateLimiterMap.Put(info.Id, rl)
+			log4go.Debug("done building rateLimiter for %s", info.Id)
+		}
 	}
+}
+
+// 创建限速器对象
+// 如果配置文件中设置了使用redis, 则创建RedisRateLimiter, 否则创建MemoryRateLimiter
+func (s *Server) createRateLimiter(info *ServiceInfo) throttle.RateLimiter {
+	enableRedis := conf.App.RedisConfig.Enabled
+	if !enableRedis {
+		return throttle.NewMemoryRateLimiter(info.Qps)
+	}
+
+	client := redis.NewRedisClient(conf.App.RedisConfig.Addr, 5)
+	err := client.Connect()
+	if nil != err {
+		log4go.Warn("failed to create ratelimiter, err = %v", err)
+		return nil
+	}
+
+	rl, err := throttle.NewRedisRateLimiter(client, conf.App.RedisConfig.RateLimiterLua, info.Qps, info.Id)
+	if nil != err {
+		log4go.Warn("failed to create ratelimiter, err = %v", err)
+		return nil
+	}
+
+	return rl
 }
 

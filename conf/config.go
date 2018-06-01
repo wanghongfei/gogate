@@ -38,8 +38,9 @@ type TrafficConfig struct {
 }
 
 type RedisConfig struct {
-	Enalbed			bool
+	Enabled			bool
 	Addr			string
+	RateLimiterLua	string`yaml:"rateLimiterLua"`
 }
 
 var App *GateConfig
@@ -107,7 +108,7 @@ func validateGogateConfig(config *GateConfig) error {
 	}
 
 	rdConfig := config.RedisConfig
-	if rdConfig.Enalbed {
+	if rdConfig.Enabled {
 		if rdConfig.Addr == "" {
 			rdConfig.Addr = "127.0.0.1:6379"
 		}

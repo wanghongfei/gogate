@@ -9,6 +9,8 @@ type RedisClient struct {
 	addr			string
 	poolSize		int
 	connPool		*pool.Pool
+
+	isConnected		bool
 }
 
 func NewRedisClient(addr string, poolSize int) *RedisClient {
@@ -42,9 +44,13 @@ func (crd *RedisClient) ExeLuaInt(lua string, keys []string, args []string) (int
 
 func (crd *RedisClient) Close() {
 	crd.connPool.Empty()
+	crd.isConnected = false
 }
 
-// for test only
+func (crd *RedisClient) IsConnected() bool {
+	return crd.isConnected
+}
+
 func (crd *RedisClient) Connect() error {
 	conn, err := pool.New("tcp", crd.addr, crd.poolSize)
 	if err != nil {
@@ -52,5 +58,6 @@ func (crd *RedisClient) Connect() error {
 	}
 
 	crd.connPool = conn
+	crd.isConnected = true
 	return nil
 }

@@ -1,13 +1,20 @@
 -- 流量控制脚本, 设置一个TTL = 1的HASH对象, 有2个entry, 分别是当前请求次数current和当前最大请求次数max;
 -- 当current + 1 > max时则返回0, 当HASH对象不存在或者current + 1 <= max时返回1;
+
+-- 参数: ARGV[1]:服务名;  ARGV[2]: qps
 -- 返回0表示达到限流, 返回1表示OK
 
-local HASH_KEY = "goate:ratelimiter"
+local servId = ARGV[1]
+if nil == servId then
+    servId = "global"
+end
+
+local HASH_KEY = "goate:ratelimiter:" .. ARGV[1]
 
 local mapResult = redis.call("hgetall", HASH_KEY)
 -- 判断hgetall是否为空
 if nil == next(mapResult) then
-    local max = ARGV[1]
+    local max = ARGV[2]
     if nil == max then
         max = 100
     end
