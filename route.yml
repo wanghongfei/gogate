@@ -41,6 +41,11 @@ services:
     prefix: /img
     strip-prefix: false
 
+  engine-service:
+    id: engine-service
+    prefix: /engine
+    strip-prefix: true
+
 # 上面都没有匹配到时
   common-service:
     id: common-service
