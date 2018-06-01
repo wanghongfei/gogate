@@ -1,22 +1,29 @@
 package redis
 
 import (
-	"github.com/mediocregopher/radix.v2/cluster"
+	"github.com/mediocregopher/radix.v2/pool"
 )
 
-type ClusterRedisClient struct {
+// Redis Client, 只能连接一个redis实例, 有连接池
+type RedisClient struct {
 	addr			string
-	cluster			*cluster.Cluster
+	poolSize		int
+	connPool		*pool.Pool
 }
 
-func NewClusterRedisClient(addr string) *ClusterRedisClient {
-	return &ClusterRedisClient{
+func NewRedisClient(addr string, poolSize int) *RedisClient {
+	if poolSize < 1 {
+		poolSize = 1
+	}
+
+	return &RedisClient{
 		addr: addr,
+		poolSize: poolSize,
 	}
 }
 
-func (crd *ClusterRedisClient) GetString(key string) (string, error) {
-	resp := crd.cluster.Cmd("get", key)
+func (crd *RedisClient) GetString(key string) (string, error) {
+	resp := crd.connPool.Cmd("get", key)
 	if nil != resp.Err {
 		return "", resp.Err
 	}
@@ -24,17 +31,26 @@ func (crd *ClusterRedisClient) GetString(key string) (string, error) {
 	return resp.Str()
 }
 
-func (crd *ClusterRedisClient) Close() {
-	crd.cluster.Close()
+func (crd *RedisClient) ExeLuaInt(lua string, keys []string, args []string) (int, error) {
+	resp := crd.connPool.Cmd("eval", lua, len(keys), keys, args)
+	if nil != resp.Err {
+		return 0, resp.Err
+	}
+
+	return resp.Int()
+}
+
+func (crd *RedisClient) Close() {
+	crd.connPool.Empty()
 }
 
 // for test only
-func (crd *ClusterRedisClient) Connect() error {
-	cluster, err := cluster.New(crd.addr)
+func (crd *RedisClient) Connect() error {
+	conn, err := pool.New("tcp", crd.addr, crd.poolSize)
 	if err != nil {
 		return err
 	}
 
-	crd.cluster = cluster
+	crd.connPool = conn
 	return nil
 }
