@@ -13,7 +13,7 @@ if nil == next(mapResult) then
     end
 
     redis.call("hmset", HASH_KEY, "current", 1, "max", max)
-    redis.call("expire", HASH_KEY, 60)
+    redis.call("expire", HASH_KEY, 1)
 
     return 1
 end
