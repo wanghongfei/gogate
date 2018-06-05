@@ -24,12 +24,22 @@ func main() {
 		return
 	}
 
-	// optional: 注册自定义过虑器, 在转发请求之前调用
-	server.RegisterPreFilter(PreLogFilter)
-	server.RegisterPreFilter(PreLogFilter)
-	// optional: 注册自定义过虑器, 在转发请求之后调用
-	server.RegisterPostFilter(PostLogFilter)
-	server.RegisterPostFilter(PostLogFilter)
+	// ******************* 非必须 *************************
+	// 注册自定义过虑器, 在转发请求之前调用
+	customPreFilter := serv.NewPreFilter("pre-log-filter1", PreLogFilter)
+	server.AppendPreFilter(customPreFilter)
+	// 在指定filter后面添加指定filter
+	server.InsertPreFilterBehind("pre-log-filter1", customPreFilter)
+	fmt.Printf("pre filters: %v\n", server.ExportAllPreFilters())
+
+	// optional
+	// 注册自定义过虑器, 在转发请求之后调用
+	customPostFilter := serv.NewPostFilter("post-log-filter1", PostLogFilter)
+	server.AppendPostFilter(customPostFilter)
+	// 在指定filter后面添加指定filter
+	server.InsertPostFilterBehind("post-log-filter1", customPostFilter)
+	fmt.Printf("post filters: %v\n", server.ExportAllPostFilters())
+	// ******************* 非必须 *************************
 
 	// 启动Server
 	err = server.Start()

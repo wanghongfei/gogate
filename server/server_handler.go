@@ -68,7 +68,7 @@ func (s *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	resp.Header.Add("Time", strconv.FormatInt(sw.Record(), 10))
 
 	// 调用Post过虑器
-	ok = invokePostFilters(s.postFilters, newReq, resp)
+	ok = invokePostFilters(s, newReq, resp)
 	if !ok {
 		return
 	}
@@ -88,7 +88,7 @@ func sendResponse(ctx *fasthttp.RequestCtx, resp *fasthttp.Response) {
 
 func invokePreFilters(s *Server, ctx *fasthttp.RequestCtx, newReq *fasthttp.Request) bool {
 	for _, f := range s.preFilters {
-		next := f(s, ctx, newReq)
+		next := f.FilterFunc(s, ctx, newReq)
 		if !next {
 			return false
 		}
@@ -97,9 +97,9 @@ func invokePreFilters(s *Server, ctx *fasthttp.RequestCtx, newReq *fasthttp.Requ
 	return true
 }
 
-func invokePostFilters(filters []PostFilterFunc, newReq *fasthttp.Request, resp *fasthttp.Response) bool {
-	for _, f := range filters {
-		next := f(newReq, resp)
+func invokePostFilters(s *Server, newReq *fasthttp.Request, resp *fasthttp.Response) bool {
+	for _, f := range s.postFilters {
+		next := f.FilterFunc(newReq, resp)
 		if !next {
 			return false
 		}

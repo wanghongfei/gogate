@@ -20,6 +20,9 @@ func main() {
 	)
 	checkErrorExit(err)
 
+	log4go.Info("pre filters: %v", server.ExportAllPreFilters())
+	log4go.Info("post filters: %v", server.ExportAllPostFilters())
+
 	log4go.Info("started gogate at %s:%d", conf.App.ServerConfig.Host, conf.App.ServerConfig.Port)
 	err = server.Start()
 

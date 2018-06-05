@@ -21,8 +21,9 @@ type Server struct {
 	// URI路由组件
 	Router 			*Router
 
-	preFilters		[]PreFilterFunc
-	postFilters		[]PostFilterFunc
+	// 过滤器
+	preFilters		[]*PreFilter
+	postFilters		[]*PostFilter
 
 	// fasthttp对象
 	fastServ		*fasthttp.Server
@@ -92,6 +93,9 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 
 		Router: router,
 		proxyClients: NewInsMetaLbClientSyncMap(),
+
+		preFilters: make([]*PreFilter, 0, 3),
+		postFilters: make([]*PostFilter, 0, 3),
 	}
 
 	// 创建FastServer对象
@@ -107,9 +111,9 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 	serv.rebuildRateLimiter()
 
 	// 注册过虑器
-	serv.RegisterPreFilter(ServiceMatchPreFilter)
-	serv.RegisterPreFilter(RateLimitPreFilter)
-	serv.RegisterPreFilter(UrlRewritePreFilter)
+	serv.AppendPreFilter(NewPreFilter("service-match-pre-filter", ServiceMatchPreFilter))
+	serv.AppendPreFilter(NewPreFilter("rate-limit-pre-filter", RateLimitPreFilter))
+	serv.AppendPreFilter(NewPreFilter("url-rewrite-pre-filter", UrlRewritePreFilter))
 
 	return serv, nil
 
@@ -149,15 +153,6 @@ func (s *Server) ExtractRoute() string {
 	return s.Router.ExtractRoute()
 }
 
-// 注册过滤器, 追加到末尾
-func (s *Server) RegisterPreFilter(preFunc PreFilterFunc) {
-	s.preFilters = append(s.preFilters, preFunc)
-}
-
-// 注册过滤器, 追加到末尾
-func (s *Server) RegisterPostFilter(postFunc PostFilterFunc) {
-	s.postFilters = append(s.postFilters, postFunc)
-}
 
 func (s *Server) startRefreshRegistryInfo() {
 	log4go.Info("refresh registry every %d sec", REGISTRY_REFRESH_INTERVAL)
