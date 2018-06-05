@@ -37,7 +37,7 @@ func main() {
 	customPostFilter := serv.NewPostFilter("post-log-filter1", PostLogFilter)
 	server.AppendPostFilter(customPostFilter)
 	// 在指定filter后面添加指定filter
-	server.InsertPostFilterBehind("post-log-filter1", customPostFilter)
+	server.InsertPostFilterBehind("pre-log-filter1", customPostFilter)
 	fmt.Printf("post filters: %v\n", server.ExportAllPostFilters())
 	// ******************* 非必须 *************************
 

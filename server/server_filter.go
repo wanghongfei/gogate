@@ -33,30 +33,36 @@ func (s *Server) ExportAllPostFilters() []*PostFilter {
 // 在指定前置过滤器的后面添加
 func (serv *Server) InsertPreFilterBehind(filterName string, filter *PreFilter) bool {
 	log4go.Info("insert pre filter: %s", filter.Name)
+
 	targetIdx := serv.getPreFilterIndex(filterName)
 	if -1 == targetIdx {
 		return false
 	}
 
-	serv.ensurePreFilterCap(1)
+	rearIdx := targetIdx + 1
+	rear := append([]*PreFilter{}, serv.preFilters[rearIdx:]...)
+	serv.preFilters = append(serv.preFilters[0:rearIdx], filter)
+	serv.preFilters = append(serv.preFilters, rear...)
 
-	// move elem
-	size := len(serv.preFilters)
-	ix := size - 1
-	for ; ix > targetIdx; ix-- {
-		serv.preFilters[ix + 1] = serv.preFilters[ix]
-	}
-
-	serv.preFilters[ix] = filter
 
 	return true
 }
 
 // 在指定后置过滤器的后面添加
+// filterName: 在此过滤器后面添加filter, 如果要在队头添加, 则使用空字符串
+// filter: 过滤器对象
 func (serv *Server) InsertPostFilterBehind(filterName string, filter *PostFilter) bool {
 	log4go.Info("insert post filter: %s", filter.Name)
-	targetIdx := serv.getPostFilterIndex(filterName)
-	if -1 == targetIdx {
+
+	targetIdx := -2
+	if "" == filterName {
+		// 表示要在最头添加过滤器
+		targetIdx = -1
+	} else {
+		targetIdx = serv.getPostFilterIndex(filterName)
+	}
+
+	if -2 == targetIdx {
 		return false
 	}
 
@@ -121,7 +127,7 @@ func (serv *Server) ensurePostFilterCap(neededSpace int) {
 
 func (serv *Server) getPostFilterIndex(name string) int {
 	if nil == serv.preFilters {
-		return -1
+		return -2
 	}
 
 	for ix, f := range serv.postFilters {
@@ -130,6 +136,6 @@ func (serv *Server) getPostFilterIndex(name string) int {
 		}
 	}
 
-	return -1
+	return -2
 }
 

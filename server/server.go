@@ -112,8 +112,8 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 
 	// 注册过虑器
 	serv.AppendPreFilter(NewPreFilter("service-match-pre-filter", ServiceMatchPreFilter))
-	serv.AppendPreFilter(NewPreFilter("rate-limit-pre-filter", RateLimitPreFilter))
-	serv.AppendPreFilter(NewPreFilter("url-rewrite-pre-filter", UrlRewritePreFilter))
+	serv.InsertPreFilterBehind("service-match-pre-filter", NewPreFilter("rate-limit-pre-filter", RateLimitPreFilter))
+	serv.InsertPreFilterBehind("rate-limit-pre-filter", NewPreFilter("url-rewrite-pre-filter", UrlRewritePreFilter))
 
 	return serv, nil
 
