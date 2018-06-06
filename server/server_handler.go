@@ -17,11 +17,11 @@ const (
 )
 
 // HTTP请求处理方法
-func (s *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
+func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	defer func() {
 		if r := recover(); r != nil {
 			log4go.Error(r)
-			processPanic(ctx, s)
+			processPanic(ctx, serv)
 		}
 	}()
 
@@ -33,14 +33,14 @@ func (s *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 
 	// 处理reload请求
 	if path == RELOAD_PATH {
-		err := s.ReloadRoute()
+		err := serv.ReloadRoute()
 		if nil != err {
 			log4go.Error(err)
 			NewResponse(path, err.Error()).Send(ctx)
 			return
 		}
 
-		ctx.WriteString(s.ExtractRoute())
+		ctx.WriteString(serv.ExtractRoute())
 		return
 	}
 
@@ -48,27 +48,27 @@ func (s *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	ctx.Request.CopyTo(newReq)
 
 	// 调用Pre过虑器
-	ok := invokePreFilters(s, ctx, newReq)
+	ok := invokePreFilters(serv, ctx, newReq)
 	if !ok {
 		return
 	}
 
 	// 发请求
 	sw := utils.NewStopwatch()
-	resp, err := s.sendRequest(ctx, newReq)
+	resp, err := serv.sendRequest(ctx, newReq)
 	if nil != err {
 		log4go.Error(err)
 		NewResponse(path, err.Error()).Send(ctx)
 
-		s.recordTraffic(ctx, false)
+		serv.recordTraffic(ctx, false)
 		return
 	}
-	s.recordTraffic(ctx, true)
+	serv.recordTraffic(ctx, true)
 
 	resp.Header.Add("Time", strconv.FormatInt(sw.Record(), 10))
 
 	// 调用Post过虑器
-	ok = invokePostFilters(s, newReq, resp)
+	ok = invokePostFilters(serv, newReq, resp)
 	if !ok {
 		return
 	}

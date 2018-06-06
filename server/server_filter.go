@@ -5,33 +5,45 @@ import (
 )
 
 // 注册过滤器, 追加到末尾
-func (s *Server) AppendPreFilter(pre *PreFilter) {
+func (serv *Server) AppendPreFilter(pre *PreFilter) {
+	if serv.isStarted {
+		log4go.Warn("cannot change filters after server started")
+	}
+
 	log4go.Info("append pre filter: %s", pre.Name)
-	s.preFilters = append(s.preFilters, pre)
+	serv.preFilters = append(serv.preFilters, pre)
 }
 
 // 注册过滤器, 追加到末尾
-func (s *Server) AppendPostFilter(post *PostFilter) {
+func (serv *Server) AppendPostFilter(post *PostFilter) {
+	if serv.isStarted {
+		log4go.Warn("cannot change filters after server started")
+	}
+
 	log4go.Info("append post filter: %s", post.Name)
-	s.postFilters = append(s.postFilters, post)
+	serv.postFilters = append(serv.postFilters, post)
 }
 
-func (s *Server) ExportAllPreFilters() []*PreFilter {
-	result := make([]*PreFilter, len(s.preFilters))
-	copy(result, s.preFilters)
+func (serv *Server) ExportAllPreFilters() []*PreFilter {
+	result := make([]*PreFilter, len(serv.preFilters))
+	copy(result, serv.preFilters)
 
 	return result
 }
 
-func (s *Server) ExportAllPostFilters() []*PostFilter {
-	result := make([]*PostFilter, len(s.postFilters))
-	copy(result, s.postFilters)
+func (serv *Server) ExportAllPostFilters() []*PostFilter {
+	result := make([]*PostFilter, len(serv.postFilters))
+	copy(result, serv.postFilters)
 
 	return result
 }
 
 // 在指定前置过滤器的后面添加
 func (serv *Server) InsertPreFilterBehind(filterName string, filter *PreFilter) bool {
+	if serv.isStarted {
+		log4go.Warn("cannot change filters after server started")
+	}
+
 	log4go.Info("insert pre filter: %s", filter.Name)
 
 	targetIdx := serv.getPreFilterIndex(filterName)
@@ -52,6 +64,10 @@ func (serv *Server) InsertPreFilterBehind(filterName string, filter *PreFilter) 
 // filterName: 在此过滤器后面添加filter, 如果要在队头添加, 则使用空字符串
 // filter: 过滤器对象
 func (serv *Server) InsertPostFilterBehind(filterName string, filter *PostFilter) bool {
+	if serv.isStarted {
+		log4go.Warn("cannot change filters after server started")
+	}
+
 	log4go.Info("insert post filter: %s", filter.Name)
 
 	targetIdx := serv.getPostFilterIndex(filterName)
@@ -114,7 +130,7 @@ func (serv *Server) ensurePostFilterCap(neededSpace int) {
 
 func (serv *Server) getPostFilterIndex(name string) int {
 	if nil == serv.preFilters {
-		return -2
+		return -1
 	}
 
 	for ix, f := range serv.postFilters {
@@ -123,6 +139,6 @@ func (serv *Server) getPostFilterIndex(name string) int {
 		}
 	}
 
-	return -2
+	return -1
 }
 

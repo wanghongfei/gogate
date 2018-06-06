@@ -27,11 +27,11 @@ GoGate使用FastHttp库收发HTTP请求。
 
 ![arc](http://ovbyjzegm.bkt.clouddn.com/gogate-arc.jpg)
 
-服务路由: 根据URL匹配后端微服务
+服务路由`service-match-pre-filter`: 根据URL匹配后端微服务
 
-流量控制: 令牌桶算法控制qps
+流量控制`rate-limit-pre-filter`: 令牌桶算法控制qps
 
-URL重写: 调整向后端服务发请求的URL
+URL重写`url-rewrite-pre-filter`: 调整向后端服务发请求的URL
 
 转发请求: 负载均衡、按比例分配流量
 
@@ -78,7 +78,7 @@ go build github.com/wanghongfei/gogate
 
 ## 路由配置
 
-规则:
+路由匹配规则:
 
 - 当`id`不为空时，会使用eureka的注册信息查询此服务的地址
 - 当`host`不为空时, 会优先使用此字段指定的服务地址, 多个地址用逗号分隔
@@ -91,6 +91,10 @@ GET /_mgr/reload
 ```
 
 即可应用新配置。
+
+
+
+示例配置：
 
 ```yaml
 services:
@@ -141,6 +145,58 @@ services:
     prefix: /
     strip-prefix: false
 ```
+
+
+
+## 自定义过滤器
+
+前置fitler和后置filter都可以在任意位置添加自定义过滤器以实现定制化的功能。
+
+
+
+- 前置过滤器
+
+函数签名为:
+
+```go
+type PreFilterFunc func(server *Server, ctx *fasthttp.RequestCtx, newRequest *fasthttp.Request) bool
+```
+
+`server`: gogate server对象的指针
+
+`ctx`: 请求上下文对象指针
+
+`newRequest`: 要转发给下游微服务的请求对象的指针，可以对相关参数进行修改，如header, body, method等
+
+返回`true`时gogate会继续触发下一个过滤器，返回`false`则表示请求到此为止， 不会执行后续过滤器，也不会转发请求。
+
+
+
+- 后置过滤器
+
+函数签名名:
+
+```go
+type PostFilterFunc func(req *fasthttp.Request, resp *fasthttp.Response) bool
+```
+
+`req`: 已经转发给微服务的请求对象指针
+
+`resp`: 微服务返回的响应对象指针, 可进行修改
+
+返回`true`时gogate会继续触发下一个过滤器，返回`false`则表示请求到此为止， 不会执行后续过滤器，也不会转发请求。
+
+
+
+- 添加过滤器
+
+`Server.AppendPreFilter`: 在末尾追加前置过滤器
+
+`Server.AppendPostFilter`: 在末尾追加后置过滤器
+
+`Server.InsertPreFilter`: 在指定过滤器的后面插入前置过滤器
+
+`Server.InsertPostFilter` 在指定过滤器的后面插入后置过滤器
 
 
 

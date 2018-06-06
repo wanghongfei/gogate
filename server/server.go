@@ -28,6 +28,8 @@ type Server struct {
 	// fasthttp对象
 	fastServ		*fasthttp.Server
 
+	isStarted		bool
+
 	// 保存每个instanceId对应的Http Client
 	// key: instanceId(string)
 	// val: *LBClient
@@ -120,41 +122,42 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 }
 
 // 启动服务器
-func (s *Server) Start() error {
+func (serv *Server) Start() error {
 	discovery.InitEurekaClient()
 	discovery.StartRegister()
-	s.startRefreshRegistryInfo()
+	serv.startRefreshRegistryInfo()
 
 	if conf.App.Traffic.EnableTrafficRecord {
-		s.trafficStat = stat.NewTrafficStat(1000, 1, stat.NewCsvFileTraficInfoStore(conf.App.Traffic.TrafficLogDir))
-		s.trafficStat.StartRecordTrafic()
+		serv.trafficStat = stat.NewTrafficStat(1000, 1, stat.NewCsvFileTraficInfoStore(conf.App.Traffic.TrafficLogDir))
+		serv.trafficStat.StartRecordTrafic()
 	}
 
-	return s.fastServ.ListenAndServe(s.host + ":" + strconv.Itoa(s.port))
+	serv.isStarted = true
+	return serv.fastServ.ListenAndServe(serv.host + ":" + strconv.Itoa(serv.port))
 }
 
 // 优雅关闭
-func (s *Server) Shutdown() {
+func (serv *Server) Shutdown() {
 	// todo gracefully shutdown
 }
 
 // 更新路由配置文件
-func (s *Server) ReloadRoute() error {
+func (serv *Server) ReloadRoute() error {
 	log4go.Info("start reloading route info")
-	err := s.Router.ReloadRoute()
-	s.rebuildRateLimiter()
+	err := serv.Router.ReloadRoute()
+	serv.rebuildRateLimiter()
 	log4go.Info("route info reloaded")
 
 	return err
 }
 
 // 将全部路由信息以字符串形式返回
-func (s *Server) ExtractRoute() string {
-	return s.Router.ExtractRoute()
+func (serv *Server) ExtractRoute() string {
+	return serv.Router.ExtractRoute()
 }
 
 
-func (s *Server) startRefreshRegistryInfo() {
+func (serv *Server) startRefreshRegistryInfo() {
 	log4go.Info("refresh registry every %d sec", REGISTRY_REFRESH_INTERVAL)
 
 	go func() {
@@ -162,7 +165,7 @@ func (s *Server) startRefreshRegistryInfo() {
 
 		for {
 			log4go.Info("refresh registry started")
-			err := s.refreshRegistry()
+			err := serv.refreshRegistry()
 			if nil != err {
 				log4go.Error(err)
 			}
@@ -173,8 +176,8 @@ func (s *Server) startRefreshRegistryInfo() {
 	}()
 }
 
-func (s *Server) recordTraffic(ctx *fasthttp.RequestCtx, success bool) {
-	if nil != s.trafficStat {
+func (serv *Server) recordTraffic(ctx *fasthttp.RequestCtx, success bool) {
+	if nil != serv.trafficStat {
 		servName := GetStringFromUserValue(ctx, SERVICE_NAME)
 
 		log4go.Debug("log traffic for %s", servName)
@@ -188,23 +191,23 @@ func (s *Server) recordTraffic(ctx *fasthttp.RequestCtx, success bool) {
 			info.FailedCount = 1
 		}
 
-		s.trafficStat.RecordTrafic(info)
+		serv.trafficStat.RecordTrafic(info)
 	}
 
 }
 
-func (s *Server) rebuildRateLimiter() {
-	s.rateLimiterMap = NewRateLimiterSyncMap()
+func (serv *Server) rebuildRateLimiter() {
+	serv.rateLimiterMap = NewRateLimiterSyncMap()
 
 	// 创建每个服务的限速器
-	for _, info := range s.Router.ServInfos {
+	for _, info := range serv.Router.ServInfos {
 		if 0 == info.Qps {
 			continue
 		}
 
-		rl := s.createRateLimiter(info)
+		rl := serv.createRateLimiter(info)
 		if nil != rl {
-			s.rateLimiterMap.Put(info.Id, rl)
+			serv.rateLimiterMap.Put(info.Id, rl)
 			log4go.Debug("done building rateLimiter for %s", info.Id)
 		}
 	}
@@ -212,7 +215,7 @@ func (s *Server) rebuildRateLimiter() {
 
 // 创建限速器对象
 // 如果配置文件中设置了使用redis, 则创建RedisRateLimiter, 否则创建MemoryRateLimiter
-func (s *Server) createRateLimiter(info *ServiceInfo) throttle.RateLimiter {
+func (serv *Server) createRateLimiter(info *ServiceInfo) throttle.RateLimiter {
 	enableRedis := conf.App.RedisConfig.Enabled
 	if !enableRedis {
 		return throttle.NewMemoryRateLimiter(info.Qps)

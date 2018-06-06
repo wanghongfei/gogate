@@ -39,6 +39,8 @@ func main() {
 	// 在指定filter后面添加指定filter
 	server.InsertPostFilterBehind("pre-log-filter1", customPostFilter)
 	fmt.Printf("post filters: %v\n", server.ExportAllPostFilters())
+
+	// 自定义过虑器的添加方法必须在server启动之前调用, 启动后调用无效
 	// ******************* 非必须 *************************
 
 	// 启动Server

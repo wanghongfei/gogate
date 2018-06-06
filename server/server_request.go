@@ -10,7 +10,7 @@ import (
 )
 
 
-func (s *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request) (*fasthttp.Response, error) {
+func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request) (*fasthttp.Response, error) {
 	// 获取服务信息
 	info := ctx.UserValue(ROUTE_INFO).(*ServiceInfo)
 
@@ -29,7 +29,7 @@ func (s *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request) (*
 			clientName = clientName + ":" + version
 		}
 
-		client, exist := s.proxyClients.Get(clientName)
+		client, exist := serv.proxyClients.Get(clientName)
 		if !exist {
 			return nil, errors.New("no client " + clientName + " for service " + appId + ", (service is offline)")
 		}
