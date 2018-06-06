@@ -54,28 +54,15 @@ func (serv *Server) InsertPreFilterBehind(filterName string, filter *PreFilter) 
 func (serv *Server) InsertPostFilterBehind(filterName string, filter *PostFilter) bool {
 	log4go.Info("insert post filter: %s", filter.Name)
 
-	targetIdx := -2
-	if "" == filterName {
-		// 表示要在最头添加过滤器
-		targetIdx = -1
-	} else {
-		targetIdx = serv.getPostFilterIndex(filterName)
-	}
-
-	if -2 == targetIdx {
+	targetIdx := serv.getPostFilterIndex(filterName)
+	if -1 == targetIdx {
 		return false
 	}
 
-	serv.ensurePostFilterCap(1)
-
-	// move elem
-	size := len(serv.postFilters)
-	ix := size - 1
-	for ; ix > targetIdx; ix-- {
-		serv.postFilters[ix + 1] = serv.postFilters[ix]
-	}
-
-	serv.postFilters[ix] = filter
+	rearIdx := targetIdx + 1
+	rear := append([]*PostFilter{}, serv.postFilters[rearIdx:]...)
+	serv.postFilters = append(serv.postFilters[0:rearIdx], filter)
+	serv.postFilters = append(serv.postFilters, rear...)
 
 	return true
 }
