@@ -19,15 +19,3 @@ func TestServer_ReloadRoute(t *testing.T) {
 	fmt.Println(serv.ExtractRoute())
 }
 
-func TestOther(t *testing.T) {
-	a := make([]int, 0, 10)
-	fmt.Printf("cap(a) = %d, len(a) = %d\n", cap(a), len(a))
-
-	b := append(a, 1)
-	fmt.Printf("cap(a) = %d, len(a) = %d, cap(b) = %d, len(b) = %d\n", cap(a), len(a), cap(b), len(b))
-
-	_ = append(a, 2)
-	fmt.Printf("cap(a) = %d, len(a) = %d, cap(b) = %d, len(b) = %d\n", cap(a), len(a), cap(b), len(b))
-
-	println(b[0])
-}

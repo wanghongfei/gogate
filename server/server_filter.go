@@ -83,6 +83,36 @@ func (serv *Server) InsertPostFilterBehind(filterName string, filter *PostFilter
 	return true
 }
 
+// 在最头部添加前置过滤器
+func (serv *Server) InsertPreFilterAhead(filter *PreFilter) {
+	if serv.isStarted {
+		log4go.Warn("cannot change filters after server started")
+	}
+
+	log4go.Info("insert pre filter: %s", filter.Name)
+
+	newFilterSlice := make([]*PreFilter, 0, 1 + len(serv.preFilters))
+	newFilterSlice = append(newFilterSlice, filter)
+	newFilterSlice = append(newFilterSlice, serv.preFilters...)
+
+	serv.preFilters = newFilterSlice
+}
+
+// 在最头部添加后置过滤器
+func (serv *Server) InsertPostFilterAhead(filter *PostFilter) {
+	if serv.isStarted {
+		log4go.Warn("cannot change filters after server started")
+	}
+
+	log4go.Info("insert post filter: %s", filter.Name)
+
+	newFilterSlice := make([]*PostFilter, 0, 1 + len(serv.postFilters))
+	newFilterSlice = append(newFilterSlice, filter)
+	newFilterSlice = append(newFilterSlice, serv.postFilters...)
+
+	serv.postFilters = newFilterSlice
+}
+
 func (serv *Server) ensurePreFilterCap(neededSpace int) {
 	currentCap := cap(serv.preFilters)
 	currentLen := len(serv.preFilters)
@@ -109,23 +139,6 @@ func (serv *Server) getPreFilterIndex(name string) int {
 	}
 
 	return -1
-}
-
-
-
-
-func (serv *Server) ensurePostFilterCap(neededSpace int) {
-	currentCap := cap(serv.postFilters)
-	currentLen := len(serv.postFilters)
-	leftSpace := currentCap - currentLen
-
-	if leftSpace < neededSpace {
-		newCap := currentCap + (neededSpace - leftSpace) + 3
-
-		oldFilters := serv.postFilters
-		serv.postFilters = make([]*PostFilter, 0, newCap)
-		copy(serv.postFilters, oldFilters)
-	}
 }
 
 func (serv *Server) getPostFilterIndex(name string) int {

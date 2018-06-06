@@ -196,9 +196,11 @@ type PostFilterFunc func(req *fasthttp.Request, resp *fasthttp.Response) bool
 
 `Server.InsertPreFilter`: 在指定过滤器的后面插入前置过滤器
 
-`Server.InsertPostFilter` 在指定过滤器的后面插入后置过滤器
+`Server.InsertPostFilter`: 在指定过滤器的后面插入后置过滤器
 
+`Server.InsertPreFilterAhead`: 插入前置过滤器到最头部
 
+`Server.InsertPostFilterAhead`: 插入后置过滤器到最头部 
 
 ## Eureka配置
 
