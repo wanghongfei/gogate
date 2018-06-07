@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/alecthomas/log4go"
+	"github.com/wanghongfei/gogate/asynclog"
 	"gopkg.in/yaml.v2"
 )
 
@@ -64,7 +65,7 @@ func LoadConfig(filename string) {
 	config := new(GateConfig)
 	err = yaml.Unmarshal(buf, config)
 	if nil != err {
-		log4go.Error(err)
+		asynclog.Error(err)
 		panic(err)
 	}
 

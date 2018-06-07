@@ -225,10 +225,16 @@ server:
   # gateway请求后端服务超时时间, 毫秒
   timeout: 3000
 
-# eureka配置文件名
-eurekaConfigFile: eureka.json
-# 路由配置文件名
-routeConfigFile: route.yml
+eureka:
+  # eureka配置文件名
+  configFile: eureka.json
+  # 路由配置文件名
+  routeFile: route.yml
+  # eureka剔除服务的最大时间限值, 秒
+  evictionDuration: 30
+  # 心跳间隔, 秒
+  heartbeatInterval: 20
+
 
 traffic:
   # 是否开启流量记录功能
@@ -238,7 +244,7 @@ traffic:
 
 redis:
   # 是否使用redis做限速器
-  enabled: true
+  enabled: false
   # 目前只支持单实例, 不支持cluster
   addr: 127.0.0.1:6379
   # 限速器lua代码文件

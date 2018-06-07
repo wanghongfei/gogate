@@ -4,8 +4,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/alecthomas/log4go"
 	"github.com/wanghongfei/go-eureka-client/eureka"
+	"github.com/wanghongfei/gogate/asynclog"
 	"github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/utils"
 )
@@ -34,7 +34,7 @@ func StartRegister() {
 	}
 
 	// 注册
-	log4go.Info("register to eureka")
+	asynclog.Info("register to eureka")
 	gogateApp = eureka.NewInstanceInfo(
 		host,
 		conf.App.ServerConfig.AppName,
@@ -50,7 +50,7 @@ func StartRegister() {
 
 	err = euClient.RegisterInstance("gogate", gogateApp)
 	if nil != err {
-		log4go.Warn("failed to register to eureka, %v", err)
+		asynclog.Warn("failed to register to eureka, %v", err)
 	}
 
 	// 心跳
@@ -65,10 +65,10 @@ func StartRegister() {
 func heartbeat() {
 	err := euClient.SendHeartbeat(gogateApp.App, gogateApp.HostName)
 	if nil != err {
-		log4go.Warn("failed to send heartbeat, %v", err)
+		asynclog.Warn("failed to send heartbeat, %v", err)
 		return
 	}
 
-	log4go.Info("heartbeat sent")
+	asynclog.Info("heartbeat sent")
 }
 

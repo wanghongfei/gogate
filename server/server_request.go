@@ -4,8 +4,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
+	"github.com/wanghongfei/gogate/asynclog"
 	"github.com/wanghongfei/gogate/utils"
 )
 
@@ -68,7 +68,7 @@ func chooseVersion(canaryInfos []*CanaryInfo) string {
 
 	index := utils.RandomByWeight(weights)
 	if -1 == index {
-		log4go.Warn("random interval returned -1")
+		asynclog.Warn("random interval returned -1")
 		return ""
 	}
 

@@ -1,26 +1,26 @@
 package server
 
 import (
-	"github.com/alecthomas/log4go"
+	"github.com/wanghongfei/gogate/asynclog"
 )
 
 // 注册过滤器, 追加到末尾
 func (serv *Server) AppendPreFilter(pre *PreFilter) {
 	if serv.isStarted {
-		log4go.Warn("cannot change filters after server started")
+		asynclog.Warn("cannot change filters after server started")
 	}
 
-	log4go.Info("append pre filter: %s", pre.Name)
+	asynclog.Info("append pre filter: %s", pre.Name)
 	serv.preFilters = append(serv.preFilters, pre)
 }
 
 // 注册过滤器, 追加到末尾
 func (serv *Server) AppendPostFilter(post *PostFilter) {
 	if serv.isStarted {
-		log4go.Warn("cannot change filters after server started")
+		asynclog.Warn("cannot change filters after server started")
 	}
 
-	log4go.Info("append post filter: %s", post.Name)
+	asynclog.Info("append post filter: %s", post.Name)
 	serv.postFilters = append(serv.postFilters, post)
 }
 
@@ -41,10 +41,10 @@ func (serv *Server) ExportAllPostFilters() []*PostFilter {
 // 在指定前置过滤器的后面添加
 func (serv *Server) InsertPreFilterBehind(filterName string, filter *PreFilter) bool {
 	if serv.isStarted {
-		log4go.Warn("cannot change filters after server started")
+		asynclog.Warn("cannot change filters after server started")
 	}
 
-	log4go.Info("insert pre filter: %s", filter.Name)
+	asynclog.Info("insert pre filter: %s", filter.Name)
 
 	targetIdx := serv.getPreFilterIndex(filterName)
 	if -1 == targetIdx {
@@ -65,10 +65,10 @@ func (serv *Server) InsertPreFilterBehind(filterName string, filter *PreFilter) 
 // filter: 过滤器对象
 func (serv *Server) InsertPostFilterBehind(filterName string, filter *PostFilter) bool {
 	if serv.isStarted {
-		log4go.Warn("cannot change filters after server started")
+		asynclog.Warn("cannot change filters after server started")
 	}
 
-	log4go.Info("insert post filter: %s", filter.Name)
+	asynclog.Info("insert post filter: %s", filter.Name)
 
 	targetIdx := serv.getPostFilterIndex(filterName)
 	if -1 == targetIdx {
@@ -86,10 +86,10 @@ func (serv *Server) InsertPostFilterBehind(filterName string, filter *PostFilter
 // 在最头部添加前置过滤器
 func (serv *Server) InsertPreFilterAhead(filter *PreFilter) {
 	if serv.isStarted {
-		log4go.Warn("cannot change filters after server started")
+		asynclog.Warn("cannot change filters after server started")
 	}
 
-	log4go.Info("insert pre filter: %s", filter.Name)
+	asynclog.Info("insert pre filter: %s", filter.Name)
 
 	newFilterSlice := make([]*PreFilter, 0, 1 + len(serv.preFilters))
 	newFilterSlice = append(newFilterSlice, filter)
@@ -101,10 +101,10 @@ func (serv *Server) InsertPreFilterAhead(filter *PreFilter) {
 // 在最头部添加后置过滤器
 func (serv *Server) InsertPostFilterAhead(filter *PostFilter) {
 	if serv.isStarted {
-		log4go.Warn("cannot change filters after server started")
+		asynclog.Warn("cannot change filters after server started")
 	}
 
-	log4go.Info("insert post filter: %s", filter.Name)
+	asynclog.Info("insert post filter: %s", filter.Name)
 
 	newFilterSlice := make([]*PostFilter, 0, 1 + len(serv.postFilters))
 	newFilterSlice = append(newFilterSlice, filter)

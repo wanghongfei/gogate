@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
+	"github.com/wanghongfei/gogate/asynclog"
 	"github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
 	"github.com/wanghongfei/gogate/redis"
@@ -143,10 +143,10 @@ func (serv *Server) Shutdown() {
 
 // 更新路由配置文件
 func (serv *Server) ReloadRoute() error {
-	log4go.Info("start reloading route info")
+	asynclog.Info("start reloading route info")
 	err := serv.Router.ReloadRoute()
 	serv.rebuildRateLimiter()
-	log4go.Info("route info reloaded")
+	asynclog.Info("route info reloaded")
 
 	return err
 }
@@ -158,18 +158,18 @@ func (serv *Server) ExtractRoute() string {
 
 
 func (serv *Server) startRefreshRegistryInfo() {
-	log4go.Info("refresh registry every %d sec", REGISTRY_REFRESH_INTERVAL)
+	asynclog.Info("refresh registry every %d sec", REGISTRY_REFRESH_INTERVAL)
 
 	go func() {
 		ticker := time.NewTicker(REGISTRY_REFRESH_INTERVAL * time.Second)
 
 		for {
-			log4go.Info("refresh registry started")
+			asynclog.Info("refresh registry started")
 			err := serv.refreshRegistry()
 			if nil != err {
-				log4go.Error(err)
+				asynclog.Error(err)
 			}
-			log4go.Info("done refreshing registry")
+			asynclog.Info("done refreshing registry")
 
 			<- ticker.C
 		}
@@ -180,7 +180,7 @@ func (serv *Server) recordTraffic(ctx *fasthttp.RequestCtx, success bool) {
 	if nil != serv.trafficStat {
 		servName := GetStringFromUserValue(ctx, SERVICE_NAME)
 
-		log4go.Debug("log traffic for %s", servName)
+		asynclog.Debug("log traffic for %s", servName)
 
 		info := &stat.TraficInfo{
 			ServiceId: servName,
@@ -208,7 +208,7 @@ func (serv *Server) rebuildRateLimiter() {
 		rl := serv.createRateLimiter(info)
 		if nil != rl {
 			serv.rateLimiterMap.Put(info.Id, rl)
-			log4go.Debug("done building rateLimiter for %s", info.Id)
+			asynclog.Debug("done building rateLimiter for %s", info.Id)
 		}
 	}
 }
@@ -224,13 +224,13 @@ func (serv *Server) createRateLimiter(info *ServiceInfo) throttle.RateLimiter {
 	client := redis.NewRedisClient(conf.App.RedisConfig.Addr, 5)
 	err := client.Connect()
 	if nil != err {
-		log4go.Warn("failed to create ratelimiter, err = %v", err)
+		asynclog.Warn("failed to create ratelimiter, err = %v", err)
 		return nil
 	}
 
 	rl, err := throttle.NewRedisRateLimiter(client, conf.App.RedisConfig.RateLimiterLua, info.Qps, info.Id)
 	if nil != err {
-		log4go.Warn("failed to create ratelimiter, err = %v", err)
+		asynclog.Warn("failed to create ratelimiter, err = %v", err)
 		return nil
 	}
 

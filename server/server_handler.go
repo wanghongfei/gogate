@@ -3,8 +3,8 @@ package server
 import (
 	"strconv"
 
-	"github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
+	"github.com/wanghongfei/gogate/asynclog"
 	"github.com/wanghongfei/gogate/utils"
 )
 
@@ -20,7 +20,7 @@ const (
 func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	defer func() {
 		if r := recover(); r != nil {
-			log4go.Error(r)
+			asynclog.Error(r)
 			processPanic(ctx, serv)
 		}
 	}()
@@ -29,13 +29,13 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	path := string(ctx.Path())
 	ctx.SetUserValue(REQUEST_PATH, path)
 
-	log4go.Info("request received: %s %s", string(ctx.Method()), path)
+	asynclog.Info("request received: %s %s", string(ctx.Method()), path)
 
 	// 处理reload请求
 	if path == RELOAD_PATH {
 		err := serv.ReloadRoute()
 		if nil != err {
-			log4go.Error(err)
+			asynclog.Error(err)
 			NewResponse(path, err.Error()).Send(ctx)
 			return
 		}
@@ -57,7 +57,7 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	sw := utils.NewStopwatch()
 	resp, err := serv.sendRequest(ctx, newReq)
 	if nil != err {
-		log4go.Error(err)
+		asynclog.Error(err)
 		NewResponse(path, err.Error()).Send(ctx)
 
 		serv.recordTraffic(ctx, false)

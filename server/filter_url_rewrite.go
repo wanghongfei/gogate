@@ -1,8 +1,8 @@
 package server
 
 import (
-	"github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
+	"github.com/wanghongfei/gogate/asynclog"
 )
 
 func UrlRewritePreFilter(s *Server, ctx *fasthttp.RequestCtx, newRequest *fasthttp.Request) bool {
@@ -23,7 +23,7 @@ func UrlRewritePreFilter(s *Server, ctx *fasthttp.RequestCtx, newRequest *fastht
 		}
 		newRequest.URI().SetPath(newPath)
 
-		log4go.Debug("rewrite path from %s to %s", original, newPath)
+		asynclog.Debug("rewrite path from %s to %s", original, newPath)
 	}
 
 	return true

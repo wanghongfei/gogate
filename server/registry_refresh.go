@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
 	"github.com/wanghongfei/go-eureka-client/eureka"
+	"github.com/wanghongfei/gogate/asynclog"
 	"github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
 	"github.com/wanghongfei/gogate/utils"
@@ -22,18 +22,18 @@ func (serv *Server) refreshRegistry() error {
 	if nil != err {
 		return err
 	}
-	log4go.Info("total app count: %d", len(apps))
+	asynclog.Info("total app count: %d", len(apps))
 
 	if nil == apps {
-		log4go.Error("no service found")
+		asynclog.Error("no service found")
 		return nil
 	}
 
 	newRegistryMap := convertToMap(apps)
-	log4go.Info("refreshing registry")
+	asynclog.Info("refreshing registry")
 
 	refreshRegistryMap(serv, newRegistryMap)
-	log4go.Info("refreshing clients")
+	asynclog.Info("refreshing clients")
 	serv.refreshClients()
 
 	return nil
@@ -60,7 +60,7 @@ func (serv *Server) refreshClients() error {
 			// 如果注册表中的service不存在Client
 			// 则为此服务创建Client
 			if !exist {
-				log4go.Debug("create new client for service: %s", name)
+				asynclog.Debug("create new client for service: %s", name)
 				// 此service不存在, 创建新的
 				newClient := &fasthttp.LBClient{
 					Clients: createClients(hosts),
@@ -77,7 +77,7 @@ func (serv *Server) refreshClients() error {
 				if changed {
 					// 发生了变化
 					// 创建新的LBClient替换掉老的
-					log4go.Debug("service %s changed", name)
+					asynclog.Debug("service %s changed", name)
 					newClient := &fasthttp.LBClient{
 						Clients: createClients(hosts),
 						Timeout: time.Millisecond * time.Duration(conf.App.ServerConfig.Timeout),
@@ -94,7 +94,7 @@ func (serv *Server) refreshClients() error {
 	})
 
 
-	log4go.Info("%d services updated, %d services created", changeCount, newCount)
+	asynclog.Info("%d services updated, %d services created", changeCount, newCount)
 	return nil
 }
 
