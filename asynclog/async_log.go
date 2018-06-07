@@ -100,16 +100,16 @@ func (al *AsyncLog) logRoutine() {
 
 		case log4go.WARNING:
 			if nil == record.Args {
-				log4go.Debug(record.Arg0)
+				log4go.Warn(record.Arg0)
 			} else {
-				log4go.Debug(record.Arg0, record.Args...)
+				log4go.Warn(record.Arg0, record.Args...)
 			}
 
 		case log4go.ERROR:
 			if nil == record.Args {
-				log4go.Debug(record.Arg0)
+				log4go.Error(record.Arg0)
 			} else {
-				log4go.Debug(record.Arg0, record.Args...)
+				log4go.Error(record.Arg0, record.Args...)
 			}
 		}
 	}
