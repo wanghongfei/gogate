@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/wanghongfei/gogate/asynclog"
+	asynclog "github.com/alecthomas/log4go"
 )
 
 // 注册过滤器, 追加到末尾

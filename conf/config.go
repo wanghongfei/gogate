@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/alecthomas/log4go"
-	"github.com/wanghongfei/gogate/asynclog"
+	asynclog "github.com/alecthomas/log4go"
 	"gopkg.in/yaml.v2"
 )
 

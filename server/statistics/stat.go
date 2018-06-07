@@ -3,7 +3,7 @@ package stat
 import (
 	"time"
 
-	"github.com/wanghongfei/gogate/asynclog"
+	asynclog "github.com/alecthomas/log4go"
 )
 
 // 流量记录器

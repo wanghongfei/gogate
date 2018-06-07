@@ -1,8 +1,8 @@
 package server
 
 import (
+	asynclog "github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
-	"github.com/wanghongfei/gogate/asynclog"
 )
 
 // 控制QPS的前置过虑器

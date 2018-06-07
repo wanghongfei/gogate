@@ -1,8 +1,8 @@
 package server
 
 import (
+	asynclog "github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
-	"github.com/wanghongfei/gogate/asynclog"
 )
 
 func UrlRewritePreFilter(s *Server, ctx *fasthttp.RequestCtx, newRequest *fasthttp.Request) bool {

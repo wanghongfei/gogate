@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/wanghongfei/gogate/asynclog"
+	asynclog "github.com/alecthomas/log4go"
 	"github.com/wanghongfei/gogate/conf"
 	serv "github.com/wanghongfei/gogate/server"
 )

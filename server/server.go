@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
+	asynclog "github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
-	"github.com/wanghongfei/gogate/asynclog"
 	"github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
 	"github.com/wanghongfei/gogate/redis"

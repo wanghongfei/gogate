@@ -4,8 +4,8 @@ import (
 	"os"
 	"time"
 
+	asynclog "github.com/alecthomas/log4go"
 	"github.com/wanghongfei/go-eureka-client/eureka"
-	"github.com/wanghongfei/gogate/asynclog"
 	"github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/utils"
 )
