@@ -14,7 +14,7 @@ var euClient *eureka.Client
 var gogateApp *eureka.InstanceInfo
 
 func InitEurekaClient() {
-	c, err := eureka.NewClientFromFile(conf.App.EurekaConfigFile)
+	c, err := eureka.NewClientFromFile(conf.App.EurekaConfig.ConfigFile)
 	if nil != err {
 		panic(err)
 	}
@@ -35,7 +35,14 @@ func StartRegister() {
 
 	// 注册
 	log4go.Info("register to eureka")
-	gogateApp = eureka.NewInstanceInfo(host, conf.App.ServerConfig.AppName, ip, conf.App.ServerConfig.Port, 30, false)
+	gogateApp = eureka.NewInstanceInfo(
+		host,
+		conf.App.ServerConfig.AppName,
+		ip,
+		conf.App.ServerConfig.Port,
+		conf.App.EurekaConfig.EvictionDuration,
+		false,
+	)
 	gogateApp.Metadata = &eureka.MetaData{
 		Class: "",
 		Map: map[string]string {"version": conf.App.Version},
@@ -48,7 +55,7 @@ func StartRegister() {
 
 	// 心跳
 	go func() {
-		ticker := time.NewTicker(time.Second * 20)
+		ticker := time.NewTicker(time.Second * time.Duration(conf.App.EurekaConfig.HeartbeatInterval))
 		<- ticker.C
 
 		heartbeat()

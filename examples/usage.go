@@ -16,7 +16,7 @@ func main() {
 	server, err := serv.NewGatewayServer(
 		conf.App.ServerConfig.Host,
 		conf.App.ServerConfig.Port,
-		conf.App.RouteConfigFile,
+		conf.App.EurekaConfig.RouteFile,
 		conf.App.ServerConfig.MaxConnection,
 	)
 	if nil != err {

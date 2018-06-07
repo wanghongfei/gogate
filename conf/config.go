@@ -15,8 +15,7 @@ type GateConfig struct {
 	ServerConfig			*ServerConfig`yaml:"server"`
 	RedisConfig				*RedisConfig`yaml:"redis"`
 
-	EurekaConfigFile		string`yaml:"eurekaConfigFile"`
-	RouteConfigFile			string`yaml:"routeConfigFile"`
+	EurekaConfig			*EurekaConfig`yaml:"eureka"`
 
 	Traffic					*TrafficConfig`yaml:"traffic"`
 }
@@ -29,6 +28,13 @@ type ServerConfig struct {
 	// 请求超时时间, ms
 	Timeout			int`yaml:"timeout"`
 
+}
+
+type EurekaConfig struct {
+	ConfigFile				string`yaml:"configFile"`
+	RouteFile				string`yaml:"routeFile"`
+	EvictionDuration		uint`yaml:"evictionDuration"`
+	HeartbeatInterval		int`yaml:"heartbeatInterval"`
 }
 
 type TrafficConfig struct {
@@ -74,7 +80,12 @@ func validateGogateConfig(config *GateConfig) error {
 		return errors.New("config is nil")
 	}
 
-	if config.EurekaConfigFile == "" || config.RouteConfigFile == "" {
+	// 检查eureka配置
+	euConfig := config.EurekaConfig
+	if nil == euConfig {
+		return errors.New("eureka config cannot be empty")
+	}
+	if euConfig.ConfigFile == "" || euConfig.RouteFile == "" {
 		return errors.New("eureka or route config file cannot be empty")
 	}
 
