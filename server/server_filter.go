@@ -24,6 +24,7 @@ func (serv *Server) AppendPostFilter(post *PostFilter) {
 	serv.postFilters = append(serv.postFilters, post)
 }
 
+// 导出所有前置过滤器
 func (serv *Server) ExportAllPreFilters() []*PreFilter {
 	result := make([]*PreFilter, len(serv.preFilters))
 	copy(result, serv.preFilters)
@@ -31,6 +32,7 @@ func (serv *Server) ExportAllPreFilters() []*PreFilter {
 	return result
 }
 
+// 导出所有后置过滤器
 func (serv *Server) ExportAllPostFilters() []*PostFilter {
 	result := make([]*PostFilter, len(serv.postFilters))
 	copy(result, serv.postFilters)
@@ -60,7 +62,7 @@ func (serv *Server) InsertPreFilterBehind(filterName string, filter *PreFilter) 
 	return true
 }
 
-// 在指定后置过滤器的后面添加
+// 在指定后置过滤器的后面添加;
 // filterName: 在此过滤器后面添加filter, 如果要在队头添加, 则使用空字符串
 // filter: 过滤器对象
 func (serv *Server) InsertPostFilterBehind(filterName string, filter *PostFilter) bool {

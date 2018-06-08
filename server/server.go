@@ -46,9 +46,11 @@ type Server struct {
 	trafficStat		*stat.TraficStat
 }
 
+// 封装服务实例信息
 type InstanceInfo struct {
-	// host:port
+	// 格式为 host:port
 	Addr		string
+	// eureka中的meta信息
 	Meta		map[string]string
 }
 
@@ -157,6 +159,7 @@ func (serv *Server) ExtractRoute() string {
 }
 
 
+// 启动定时更新注册表的routine
 func (serv *Server) startRefreshRegistryInfo() {
 	asynclog.Info("refresh registry every %d sec", REGISTRY_REFRESH_INTERVAL)
 
@@ -196,6 +199,8 @@ func (serv *Server) recordTraffic(ctx *fasthttp.RequestCtx, success bool) {
 
 }
 
+// 给路由表中的每个服务重新创建限速器;
+// 在更新过route.yml配置文件时调用
 func (serv *Server) rebuildRateLimiter() {
 	serv.rateLimiterMap = NewRateLimiterSyncMap()
 

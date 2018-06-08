@@ -10,6 +10,7 @@ import (
 )
 
 
+// 转发请求到指定微服务
 func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request) (*fasthttp.Response, error) {
 	// 获取服务信息
 	info := ctx.UserValue(ROUTE_INFO).(*ServiceInfo)

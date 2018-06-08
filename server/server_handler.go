@@ -16,7 +16,7 @@ const (
 	RELOAD_PATH = "/_mgr/reload"
 )
 
-// HTTP请求处理方法
+// HTTP请求处理方法.
 func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	defer func() {
 		if r := recover(); r != nil {

@@ -39,7 +39,9 @@ func (serv *Server) refreshRegistry() error {
 	return nil
 }
 
-// 刷新HttpClient
+// 刷新HttpClient.
+// 遍历注册列表, 通过serviceId查找对应的Client, 如果没有则创建;
+// 如果Client存在, 则对比host(每个实例)是否与注册表中的相同，如果不相同则抛弃老Client, 重新创建
 func (serv *Server) refreshClients() error {
 	if nil == serv.proxyClients {
 		serv.proxyClients = NewInsMetaLbClientSyncMap()
@@ -50,17 +52,22 @@ func (serv *Server) refreshClients() error {
 
 	// 遍历注册列表
 	serv.registryMap.Each(func(name string, infos []*InstanceInfo) bool {
+		// 服务名
 		name = strings.ToLower(name)
 
 		// 按版本号分组
 		groupMap := groupByVersion(name, infos)
 
+		// 遍历分组后的服务表
 		for fullname, hosts := range groupMap {
+			// 根据serviceId查对应的Http Client
 			client, exist := serv.proxyClients.Get(fullname)
+
 			// 如果注册表中的service不存在Client
 			// 则为此服务创建Client
 			if !exist {
 				asynclog.Debug("create new client for service: %s", name)
+
 				// 此service不存在, 创建新的
 				newClient := &fasthttp.LBClient{
 					Clients: createClients(hosts),
@@ -71,8 +78,8 @@ func (serv *Server) refreshClients() error {
 				newCount++
 
 			} else {
-				// service存在
-				// 对比是否有变化
+				// service对应的Client
+				// 对比所有实例(host)是否有变化
 				changed := isHostsChanged(client, hosts)
 				if changed {
 					// 发生了变化
@@ -98,6 +105,7 @@ func (serv *Server) refreshClients() error {
 	return nil
 }
 
+// 将服务信息分组, 组的key为 serviceId:version, 如果没有version则key为serviceId
 func groupByVersion(serviceName string, infos []*InstanceInfo) map[string][]string {
 	groupMap := make(map[string][]string)
 
@@ -196,12 +204,18 @@ func convertToMap(apps []eureka.Application) *sync.Map {
 	return newAppsMap
 }
 
+// 更新本地注册列表
+// s: gogate server对象
+// newRegistry: 刚从eureka查出的最新服务列表
 func refreshRegistryMap(s *Server, newRegistry *sync.Map) {
 	if nil == s.registryMap {
 		s.registryMap = NewInsInfoArrSyncMap()
 	}
 
+	// 找出本地列表存在, 但新列表中不存在的服务
 	exclusiveKeys, _ := utils.FindExclusiveKey(s.registryMap.GetMap(), newRegistry)
+	// 删除本地多余的服务
 	utils.DelKeys(s.registryMap.GetMap(), exclusiveKeys)
+	// 将新列表中的服务合并到本地列表中
 	utils.MergeSyncMap(newRegistry, s.registryMap.GetMap())
 }
