@@ -66,6 +66,7 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	serv.recordTraffic(ctx, true)
 
 	resp.Header.Add("Time", strconv.FormatInt(sw.Record(), 10))
+	resp.Header.Set("Server", "gogate")
 
 	// 调用Post过虑器
 	ok = invokePostFilters(serv, newReq, resp)
