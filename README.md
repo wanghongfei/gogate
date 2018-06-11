@@ -23,6 +23,18 @@ GoGate使用FastHttp库收发HTTP请求。
 
 
 
+## 什么情况下可以考虑使用非Java语言的网关
+
+- 系统使用Spring Cloud全家桶
+- 对Zuul 1性能不满意
+- 对社区已经明确不会整合Zuul 2的行为不爽
+- 认为Spring Cloud Gateway不够成熟(相比Zuul 2.0)
+- 对网关的CPU/内存资源使用非常敏感
+
+那么就可以考虑！
+
+
+
 ## 流程
 
 ![arc](http://ovbyjzegm.bkt.clouddn.com/gogate-arc.jpg)
