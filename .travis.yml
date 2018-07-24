@@ -3,8 +3,9 @@ language: go
 go:
   - "1.10.3"
 
-#before_install:
-#  - go get github.com/tools/godep
+before_install:
+  #- go get github.com/tools/godep
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
 install:
   #- godep restore
