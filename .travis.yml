@@ -1,13 +1,14 @@
 language: go
 
 go:
-  - "1.10.x"
+  - "1.10.3"
 
-before_install:
-  - go get github.com/tools/godep
+#before_install:
+#  - go get github.com/tools/godep
 
 install:
-  - godep restore
+  #- godep restore
+  - dep ensure
 
 script:
   - go install github.com/wanghongfei/gogate

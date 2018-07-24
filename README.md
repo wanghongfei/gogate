@@ -55,7 +55,13 @@ gogate没有提供默认的Post Filter，可根据需要自己实现相应函数
 
 ## 构建
 
-Go >= 1.6; 依赖管理工具godep。
+Go >= 1.6; 依赖管理工具dep。如果没有安装dep, 可以执行
+
+```
+brew install dep
+```
+
+
 
 clone项目并下载依赖:
 
@@ -63,7 +69,7 @@ clone项目并下载依赖:
 cd ${GOPATH}/src/github.com/wanghongfei
 git clone https://github.com/wanghongfei/gogate
 
-godep restore
+dep ensure
 ```
 
 最后构建:
