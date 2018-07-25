@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"net"
 	"strconv"
 	"time"
 
@@ -17,6 +18,9 @@ import (
 type Server struct {
 	host			string
 	port			int
+
+	// 保存listener引用, 用于关闭server
+	listen			net.Listener
 
 	// URI路由组件
 	Router 			*Router
@@ -125,8 +129,11 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 
 // 启动服务器
 func (serv *Server) Start() error {
+	// 初始化eureka
 	discovery.InitEurekaClient()
+	// 注册
 	discovery.StartRegister()
+	// 更新本地注册表
 	serv.startRefreshRegistryInfo()
 
 	if conf.App.Traffic.EnableTrafficRecord {
@@ -135,12 +142,21 @@ func (serv *Server) Start() error {
 	}
 
 	serv.isStarted = true
-	return serv.fastServ.ListenAndServe(serv.host + ":" + strconv.Itoa(serv.port))
+
+	// 监听端口
+	listen, err := net.Listen("tcp", serv.host + ":" + strconv.Itoa(serv.port))
+	if nil != err {
+		return nil
+	}
+	serv.listen = listen
+
+	// 启动http server
+	return fasthttp.Serve(listen, serv.HandleRequest)
 }
 
-// 优雅关闭
-func (serv *Server) Shutdown() {
-	// todo gracefully shutdown
+// 关闭server
+func (serv *Server) Shutdown() error {
+	return serv.listen.Close()
 }
 
 // 更新路由配置文件

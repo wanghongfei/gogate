@@ -1,12 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"os"
+"fmt"
+"os"
 
-	asynclog "github.com/alecthomas/log4go"
-	"github.com/wanghongfei/gogate/conf"
-	serv "github.com/wanghongfei/gogate/server"
+
+
+asynclog "github.com/alecthomas/log4go"
+"github.com/wanghongfei/gogate/conf"
+serv "github.com/wanghongfei/gogate/server"
+
 )
 
 func main() {
