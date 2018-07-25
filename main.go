@@ -1,15 +1,13 @@
 package main
 
 import (
-"fmt"
-"os"
+	"fmt"
+	"os"
+	"time"
 
-
-
-asynclog "github.com/alecthomas/log4go"
-"github.com/wanghongfei/gogate/conf"
-serv "github.com/wanghongfei/gogate/server"
-
+	asynclog "github.com/alecthomas/log4go"
+	"github.com/wanghongfei/gogate/conf"
+	serv "github.com/wanghongfei/gogate/server"
 )
 
 func main() {
@@ -20,6 +18,10 @@ func main() {
 		conf.App.ServerConfig.Port,
 		conf.App.EurekaConfig.RouteFile,
 		conf.App.ServerConfig.MaxConnection,
+		// 是否启用优雅关闭
+		true,
+		// 优雅关闭最大等待时间, 上一个参数为true时有效
+		time.Second * 30,
 	)
 	checkErrorExit(err)
 

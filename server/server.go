@@ -21,6 +21,10 @@ type Server struct {
 
 	// 保存listener引用, 用于关闭server
 	listen			net.Listener
+	// 是否启用优雅关闭
+	graceShutdown	bool
+	// 优雅关闭最大等待时间
+	maxWait			time.Duration
 
 	// URI路由组件
 	Router 			*Router
@@ -75,7 +79,7 @@ const (
 *	- maxConn: 最大连接数, 0表示使用默认值
 *
 */
-func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Server, error) {
+func NewGatewayServer(host string, port int, routePath string, maxConn int, useGracefullyShutdown bool, maxWait time.Duration) (*Server, error) {
 	if "" == host {
 		return nil, errors.New("invalid host")
 	}
@@ -104,6 +108,9 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 
 		preFilters: make([]*PreFilter, 0, 3),
 		postFilters: make([]*PostFilter, 0, 3),
+
+		graceShutdown: useGracefullyShutdown,
+		maxWait: maxWait,
 	}
 
 	// 创建FastServer对象
@@ -148,10 +155,18 @@ func (serv *Server) Start() error {
 	if nil != err {
 		return nil
 	}
+
+	// 是否启用优雅关闭功能
+	if serv.graceShutdown {
+		// 使用自定义的Listener实现
+		listen = newGraceListener(serv.maxWait, listen)
+	}
+
+	// 保存Listener指针
 	serv.listen = listen
 
 	// 启动http server
-	return fasthttp.Serve(listen, serv.HandleRequest)
+	return serv.fastServ.Serve(listen)
 }
 
 // 关闭server
