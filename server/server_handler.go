@@ -74,8 +74,18 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	serv.setCloseHeaderIfNecessary(resp)
+
 	// 返回响应
 	sendResponse(ctx, resp)
+
+}
+
+func (serv *Server) setCloseHeaderIfNecessary(resp *fasthttp.Response) {
+	if serv.isShuttingDown() {
+		asynclog.Info("adding Connection: close header")
+		resp.SetConnectionClose()
+	}
 }
 
 func sendResponse(ctx *fasthttp.RequestCtx, resp *fasthttp.Response) {

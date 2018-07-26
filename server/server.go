@@ -174,6 +174,20 @@ func (serv *Server) Shutdown() error {
 	return serv.listen.Close()
 }
 
+func (serv *Server) isShuttingDown() bool{
+	if !serv.graceShutdown {
+		// 没有开启优雅关闭功能
+		return false
+	}
+
+	graceLn, ok := serv.listen.(*graceListener)
+	if !ok {
+		return false
+	}
+
+	return graceLn.isShuttingDown > 0
+}
+
 // 更新路由配置文件
 func (serv *Server) ReloadRoute() error {
 	asynclog.Info("start reloading route info")

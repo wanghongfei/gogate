@@ -55,7 +55,12 @@ func (gln *graceListener) Close() error {
 
 	log4go.Info("waiting for pending connection to close")
 	err := gln.waitAll()
-	log4go.Info("all connections are gracefully closed")
+	if nil != err {
+		log4go.Warn("%v, force close", err)
+
+	} else {
+		log4go.Warn("all connections are gracefully closed")
+	}
 
 	// 这里是为了等待异步日志输出完成
 	time.Sleep(500 * time.Millisecond)
@@ -82,7 +87,7 @@ func (gln *graceListener) waitAll() error {
 		return nil
 
 	case <-time.After(gln.maxWait):
-		return fmt.Errorf("force shutdown after %s", gln.maxWait)
+		return fmt.Errorf("cannot close all connections after %s", gln.maxWait)
 	}
 
 	return nil
