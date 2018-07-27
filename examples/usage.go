@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/valyala/fasthttp"
 	"github.com/wanghongfei/gogate/conf"
@@ -18,6 +19,10 @@ func main() {
 		conf.App.ServerConfig.Port,
 		conf.App.EurekaConfig.RouteFile,
 		conf.App.ServerConfig.MaxConnection,
+		// 是否启用优雅关闭
+		true,
+		// 优雅关闭最大等待时间, 上一个参数为true时有效
+		time.Second * 30,
 	)
 	if nil != err {
 		fmt.Println(err)
@@ -49,6 +54,9 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+
+	// 等待优雅关闭
+	server.WaitForGracefullyClose()
 }
 
 // 此方法会在gogate转发请求之前调用
