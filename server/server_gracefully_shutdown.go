@@ -1,12 +1,10 @@
 package server
 
 import (
-	"fmt"
 	"net"
 	"sync/atomic"
 	"time"
 
-	"github.com/alecthomas/log4go"
 )
 
 type graceListener struct {
@@ -52,45 +50,23 @@ func (gln *graceListener) Accept() (net.Conn, error) {
 }
 
 func (gln *graceListener) Close() error {
-
-	log4go.Info("waiting for pending connection to close")
-	err := gln.waitAll()
-	if nil != err {
-		log4go.Warn("%v, force close", err)
-
-	} else {
-		log4go.Warn("all connections are gracefully closed")
-	}
-
-	// 这里是为了等待异步日志输出完成
-	time.Sleep(500 * time.Millisecond)
-
-	err = gln.originalLn.Close()
+	err := gln.originalLn.Close()
 	if nil != err {
 		return err
 	}
 
+	gln.markShutdown()
+
 	return err
 }
 
-func (gln *graceListener) waitAll() error {
-	// 标记处于存在关闭状态
+func (gln *graceListener) markShutdown() {
+	// 标记处于正在关闭状态
 	atomic.AddInt64(&gln.isShuttingDown, 1)
 
 	if atomic.LoadInt64(&gln.connCount) == 0 {
 		close(gln.canShutdownNow)
-		return nil
 	}
-
-	select {
-	case <-gln.canShutdownNow:
-		return nil
-
-	case <-time.After(gln.maxWait):
-		return fmt.Errorf("cannot close all connections after %s", gln.maxWait)
-	}
-
-	return nil
 }
 
 func (gln *graceListener) closeConnection() {

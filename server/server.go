@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"strconv"
 	"time"
@@ -172,6 +173,23 @@ func (serv *Server) Start() error {
 // 关闭server
 func (serv *Server) Shutdown() error {
 	return serv.listen.Close()
+}
+
+// 需要在Shutdown()之后调用, 此方法会一直block直到所有连接关闭或者超时
+func (serv *Server) WaitForGracefullyClose() error {
+	graceLn, ok := serv.listen.(*graceListener)
+	if !ok {
+		return nil
+	}
+
+	select {
+	case <-graceLn.canShutdownNow:
+		return nil
+
+	case <-time.After(serv.maxWait):
+		return fmt.Errorf("force shutdown after %v", serv.maxWait)
+	}
+
 }
 
 func (serv *Server) isShuttingDown() bool{

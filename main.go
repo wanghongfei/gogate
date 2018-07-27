@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -11,8 +10,10 @@ import (
 )
 
 func main() {
+	// 初始化
 	serv.InitGogate("gogate.yml", "log.xml")
 
+	// 构造gogate对象
 	server, err := serv.NewGatewayServer(
 		conf.App.ServerConfig.Host,
 		conf.App.ServerConfig.Port,
@@ -23,20 +24,40 @@ func main() {
 		// 优雅关闭最大等待时间, 上一个参数为true时有效
 		time.Second * 30,
 	)
-	checkErrorExit(err)
+	checkErrorExit(err, true)
 
 	asynclog.Info("pre filters: %v", server.ExportAllPreFilters())
 	asynclog.Info("post filters: %v", server.ExportAllPostFilters())
 
 	asynclog.Info("started gogate at %s:%d", conf.App.ServerConfig.Host, conf.App.ServerConfig.Port)
-	err = server.Start()
 
-	checkErrorExit(err)
+	// deferClose(server, time.Second * 3)
+
+	// 启动服务器
+	err = server.Start()
+	checkErrorExit(err, true)
+	asynclog.Info("listener has been closed")
+
+
+	// 等待优雅关闭
+	err = server.WaitForGracefullyClose()
+	checkErrorExit(err, false)
+	time.Sleep(500 * time.Millisecond)
+
 }
 
-func checkErrorExit(err error) {
+func checkErrorExit(err error, exit bool) {
 	if nil != err {
-		fmt.Println(err)
-		os.Exit(1)
+		asynclog.Error(err)
+		if exit {
+			os.Exit(1)
+		}
 	}
+}
+
+func deferClose(serv *serv.Server, latency time.Duration) {
+	go func() {
+		time.Sleep(latency)
+		serv.Shutdown()
+	}()
 }
