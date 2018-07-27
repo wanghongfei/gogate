@@ -137,13 +137,6 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int, useG
 
 // 启动服务器
 func (serv *Server) Start() error {
-	// 初始化eureka
-	discovery.InitEurekaClient()
-	// 注册
-	discovery.StartRegister()
-	// 更新本地注册表
-	serv.startRefreshRegistryInfo()
-
 	if conf.App.Traffic.EnableTrafficRecord {
 		serv.trafficStat = stat.NewTrafficStat(1000, 1, stat.NewCsvFileTraficInfoStore(conf.App.Traffic.TrafficLogDir))
 		serv.trafficStat.StartRecordTrafic()
@@ -166,12 +159,26 @@ func (serv *Server) Start() error {
 	// 保存Listener指针
 	serv.listen = listen
 
+	// 注册
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+
+		// 初始化eureka
+		discovery.InitEurekaClient()
+		// 注册
+		discovery.StartRegister()
+		// 更新本地注册表
+		serv.startRefreshRegistryInfo()
+
+	}()
+
 	// 启动http server
 	return serv.fastServ.Serve(listen)
 }
 
 // 关闭server
 func (serv *Server) Shutdown() error {
+	discovery.UnRegister()
 	return serv.listen.Close()
 }
 

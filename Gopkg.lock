@@ -46,10 +46,10 @@
   version = "v20180529"
 
 [[projects]]
-  branch = "master"
   name = "github.com/wanghongfei/go-eureka-client"
   packages = ["eureka"]
-  revision = "777a4e11e911b7119233912afe41183bffe0a35e"
+  revision = "f168b9d2b7a509a605ba3a5def0a2e4637c25c3c"
+  version = "v1.1.0"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
@@ -60,6 +60,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "99fa2ff2b63edb1d2ceb9c44232aa7fb39be87df0142c661147582ba71f20903"
+  inputs-digest = "9580c8e6c80e011297a096e4f1889d804c23870b1cb46a4df24e2735d0ad4f08"
   solver-name = "gps-cdcl"
   solver-version = 1

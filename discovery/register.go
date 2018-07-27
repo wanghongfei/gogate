@@ -1,7 +1,7 @@
 package discovery
 
 import (
-	"os"
+	"strconv"
 	"time"
 
 	asynclog "github.com/alecthomas/log4go"
@@ -12,6 +12,10 @@ import (
 
 var euClient *eureka.Client
 var gogateApp *eureka.InstanceInfo
+var instanceId = ""
+
+var ticker *time.Ticker
+var tickerCloseChan chan struct{}
 
 func InitEurekaClient() {
 	c, err := eureka.NewClientFromFile(conf.App.EurekaConfig.ConfigFile)
@@ -28,15 +32,17 @@ func StartRegister() {
 		panic(err)
 	}
 
-	host, err := os.Hostname()
-	if nil != err {
-		panic(err)
-	}
+	//host, err := os.Hostname()
+	//if nil != err {
+	//	panic(err)
+	//}
+
+	instanceId = ip + ":" + strconv.Itoa(conf.App.ServerConfig.Port)
 
 	// 注册
-	asynclog.Info("register to eureka")
+	asynclog.Info("register to eureka as %s", instanceId)
 	gogateApp = eureka.NewInstanceInfo(
-		host,
+		instanceId,
 		conf.App.ServerConfig.AppName,
 		ip,
 		conf.App.ServerConfig.Port,
@@ -48,22 +54,51 @@ func StartRegister() {
 		Map: map[string]string {"version": conf.App.Version},
 	}
 
-	err = euClient.RegisterInstance("gogate", gogateApp)
+	err = euClient.RegisterInstance(conf.App.ServerConfig.AppName, gogateApp)
 	if nil != err {
 		asynclog.Warn("failed to register to eureka, %v", err)
 	}
 
 	// 心跳
 	go func() {
-		ticker := time.NewTicker(time.Second * time.Duration(conf.App.EurekaConfig.HeartbeatInterval))
-		<- ticker.C
+		ticker = time.NewTicker(time.Second * time.Duration(conf.App.EurekaConfig.HeartbeatInterval))
+		tickerCloseChan = make(chan struct{})
 
-		heartbeat()
+		for {
+			select {
+			case <-ticker.C:
+				heartbeat()
+
+			case <-tickerCloseChan:
+				asynclog.Info("heartbeat stopped")
+				return
+
+			}
+		}
 	}()
 }
 
+func UnRegister() {
+	stopHeartbeat()
+
+	asynclog.Info("unregistering %s", instanceId)
+	err := euClient.UnregisterInstance("gogate", instanceId)
+
+	if nil != err {
+		asynclog.Error(err)
+		return
+	}
+
+	asynclog.Info("done unregistration")
+}
+
+func stopHeartbeat() {
+	ticker.Stop()
+	close(tickerCloseChan)
+}
+
 func heartbeat() {
-	err := euClient.SendHeartbeat(gogateApp.App, gogateApp.HostName)
+	err := euClient.SendHeartbeat(gogateApp.App, instanceId)
 	if nil != err {
 		asynclog.Warn("failed to send heartbeat, %v", err)
 		return

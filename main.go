@@ -31,7 +31,7 @@ func main() {
 
 	asynclog.Info("started gogate at %s:%d", conf.App.ServerConfig.Host, conf.App.ServerConfig.Port)
 
-	// deferClose(server, time.Second * 3)
+	// deferClose(server, time.Second * 10)
 
 	// 启动服务器
 	err = server.Start()
