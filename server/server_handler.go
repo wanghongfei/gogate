@@ -11,7 +11,7 @@ import (
 const (
 	SERVICE_NAME = "key_service_name"
 	REQUEST_PATH = "key_request_path"
-	ROUTE_INFO = "key_route_info"
+	ROUTE_INFO   = "key_route_info"
 
 	RELOAD_PATH = "/_mgr/reload"
 )
@@ -19,11 +19,11 @@ const (
 // HTTP请求处理方法.
 func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	defer func() {
-		if r := recover(); r != nil {
-			asynclog.Error(r)
-			processPanic(ctx, serv)
-		}
+		recoverPanic(ctx, serv)
+		serv.markRoutineDone()
 	}()
+
+	serv.markRoutineStart()
 
 	// 取出请求path
 	path := string(ctx.Path())
@@ -74,18 +74,9 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	serv.setCloseHeaderIfNecessary(resp)
-
 	// 返回响应
 	sendResponse(ctx, resp)
 
-}
-
-func (serv *Server) setCloseHeaderIfNecessary(resp *fasthttp.Response) {
-	if serv.isShuttingDown() {
-		asynclog.Info("adding Connection: close header")
-		resp.SetConnectionClose()
-	}
 }
 
 func sendResponse(ctx *fasthttp.RequestCtx, resp *fasthttp.Response) {
@@ -95,7 +86,6 @@ func sendResponse(ctx *fasthttp.RequestCtx, resp *fasthttp.Response) {
 
 	ctx.Write(resp.Body())
 }
-
 
 func invokePreFilters(s *Server, ctx *fasthttp.RequestCtx, newReq *fasthttp.Request) bool {
 	for _, f := range s.preFilters {
@@ -125,5 +115,25 @@ func processPanic(ctx *fasthttp.RequestCtx, serv *Server) {
 
 	// 记录流量
 	serv.recordTraffic(ctx, false)
+
+}
+
+func recoverPanic(ctx *fasthttp.RequestCtx, serv *Server) {
+	if r := recover(); r != nil {
+		asynclog.Error(r)
+		processPanic(ctx, serv)
+	}
+}
+
+func (serv *Server) markRoutineStart() {
+	if nil != serv.wg {
+		serv.wg.Add(1)
+	}
+}
+
+func (serv *Server) markRoutineDone() {
+	if nil != serv.wg {
+		serv.wg.Done()
+	}
 
 }

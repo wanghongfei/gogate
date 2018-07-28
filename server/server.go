@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"sync"
 	"time"
 
 	asynclog "github.com/alecthomas/log4go"
@@ -17,50 +18,51 @@ import (
 )
 
 type Server struct {
-	host			string
-	port			int
+	host string
+	port int
 
 	// 保存listener引用, 用于关闭server
-	listen			net.Listener
+	listen net.Listener
 	// 是否启用优雅关闭
-	graceShutdown	bool
+	graceShutdown bool
 	// 优雅关闭最大等待时间
-	maxWait			time.Duration
+	maxWait time.Duration
+	wg      *sync.WaitGroup
 
 	// URI路由组件
-	Router 			*Router
+	Router *Router
 
 	// 过滤器
-	preFilters		[]*PreFilter
-	postFilters		[]*PostFilter
+	preFilters  []*PreFilter
+	postFilters []*PostFilter
 
 	// fasthttp对象
-	fastServ		*fasthttp.Server
+	fastServ *fasthttp.Server
 
-	isStarted		bool
+	isStarted bool
 
 	// 保存每个instanceId对应的Http Client
 	// key: instanceId(string)
 	// val: *LBClient
-	proxyClients	*InsLbClientSyncMap
+	proxyClients *InsLbClientSyncMap
 
 	// 保存服务地址
 	// key: 服务名:版本号, 版本号为eureka注册信息中的metadata[version]值
 	// val: []*InstanceInfo
-	registryMap		*InsInfoArrSyncMap
+	registryMap *InsInfoArrSyncMap
 
 	// 服务id(string) -> 此服务的限速器对象(*MemoryRateLimiter)
-	rateLimiterMap	*RateLimiterSyncMap
+	rateLimiterMap *RateLimiterSyncMap
 
-	trafficStat		*stat.TraficStat
+	trafficStat *stat.TraficStat
 }
 
 // 封装服务实例信息
 type InstanceInfo struct {
 	// 格式为 host:port
-	Addr		string
+	Addr string
 	// eureka中的meta信息
-	Meta		map[string]string
+	Meta map[string]string
 }
 
 const (
@@ -79,7 +81,7 @@ const (
 *	- routePath: 路由配置文件路径
 *	- maxConn: 最大连接数, 0表示使用默认值
 *
-*/
+ */
 func NewGatewayServer(host string, port int, routePath string, maxConn int, useGracefullyShutdown bool, maxWait time.Duration) (*Server, error) {
 	if "" == host {
 		return nil, errors.New("invalid host")
@@ -104,20 +106,20 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int, useG
 		host: host,
 		port: port,
 
-		Router: router,
+		Router:       router,
 		proxyClients: NewInsMetaLbClientSyncMap(),
 
-		preFilters: make([]*PreFilter, 0, 3),
+		preFilters:  make([]*PreFilter, 0, 3),
 		postFilters: make([]*PostFilter, 0, 3),
 
 		graceShutdown: useGracefullyShutdown,
-		maxWait: maxWait,
+		maxWait:       maxWait,
 	}
 
 	// 创建FastServer对象
 	fastServ := &fasthttp.Server{
-		Concurrency: maxConn,
-		Handler: serv.HandleRequest,
+		Concurrency:  maxConn,
+		Handler:      serv.HandleRequest,
 		LogAllErrors: true,
 	}
 
@@ -145,15 +147,14 @@ func (serv *Server) Start() error {
 	serv.isStarted = true
 
 	// 监听端口
-	listen, err := net.Listen("tcp", serv.host + ":" + strconv.Itoa(serv.port))
+	listen, err := net.Listen("tcp", serv.host+":"+strconv.Itoa(serv.port))
 	if nil != err {
 		return nil
 	}
 
 	// 是否启用优雅关闭功能
 	if serv.graceShutdown {
-		// 使用自定义的Listener实现
-		listen = newGraceListener(serv.maxWait, listen)
+		serv.wg = new(sync.WaitGroup)
 	}
 
 	// 保存Listener指针
@@ -184,13 +185,8 @@ func (serv *Server) Shutdown() error {
 
 // 需要在Shutdown()之后调用, 此方法会一直block直到所有连接关闭或者超时
 func (serv *Server) WaitForGracefullyClose() error {
-	graceLn, ok := serv.listen.(*graceListener)
-	if !ok {
-		return nil
-	}
-
 	select {
-	case <-graceLn.canShutdownNow:
+	case <-serv.waitAllRoutineDone():
 		return nil
 
 	case <-time.After(serv.maxWait):
@@ -199,18 +195,20 @@ func (serv *Server) WaitForGracefullyClose() error {
 
 }
 
-func (serv *Server) isShuttingDown() bool{
-	if !serv.graceShutdown {
-		// 没有开启优雅关闭功能
-		return false
-	}
+// 等待所有请求处理routine完成;
+// 此方法返回只有1个缓冲的channel, 只有当所有routine结束时channel才会有元素
+func (serv *Server) waitAllRoutineDone() chan struct{} {
+	flagChan := make(chan struct{}, 1)
 
-	graceLn, ok := serv.listen.(*graceListener)
-	if !ok {
-		return false
-	}
+	go func() {
+		if nil != serv.wg {
+			serv.wg.Wait()
+		}
 
-	return graceLn.isShuttingDown > 0
+		flagChan <- struct{}{}
+	}()
+
+	return flagChan
 }
 
 // 更新路由配置文件
@@ -228,7 +226,6 @@ func (serv *Server) ExtractRoute() string {
 	return serv.Router.ExtractRoute()
 }
 
-
 // 启动定时更新注册表的routine
 func (serv *Server) startRefreshRegistryInfo() {
 	asynclog.Info("refresh registry every %d sec", REGISTRY_REFRESH_INTERVAL)
@@ -244,7 +241,7 @@ func (serv *Server) startRefreshRegistryInfo() {
 			}
 			asynclog.Info("done refreshing registry")
 
-			<- ticker.C
+			<-ticker.C
 		}
 	}()
 }
@@ -311,4 +308,3 @@ func (serv *Server) createRateLimiter(info *ServiceInfo) throttle.RateLimiter {
 
 	return rl
 }
-

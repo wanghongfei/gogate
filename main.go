@@ -22,7 +22,7 @@ func main() {
 		// 是否启用优雅关闭
 		true,
 		// 优雅关闭最大等待时间, 上一个参数为true时有效
-		time.Second * 30,
+		time.Second*1,
 	)
 	checkErrorExit(err, true)
 
@@ -31,13 +31,12 @@ func main() {
 
 	asynclog.Info("started gogate at %s:%d", conf.App.ServerConfig.Host, conf.App.ServerConfig.Port)
 
-	// deferClose(server, time.Second * 10)
+	// deferClose(server, time.Second * 5)
 
 	// 启动服务器
 	err = server.Start()
 	checkErrorExit(err, true)
 	asynclog.Info("listener has been closed")
-
 
 	// 等待优雅关闭
 	err = server.WaitForGracefullyClose()
