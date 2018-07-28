@@ -95,6 +95,21 @@ go build github.com/wanghongfei/gogate
 
 
 
+## 关于优雅关闭
+
+创建`server`对象时如果指定了启用优雅关闭功能, 则在调用
+
+```go
+server.WaitForGracefullyClose()
+```
+
+方法后，会发生：
+
+- 停止eureka心跳
+- 向eureka取消注册
+- block当前协程，直到所有正在处理的请求退出或者超过最大等待时间
+
+
 
 
 ## 路由配置
