@@ -179,7 +179,9 @@ func (serv *Server) Start() error {
 
 // 关闭server
 func (serv *Server) Shutdown() error {
+	serv.isStarted = false
 	discovery.UnRegister()
+
 	return serv.listen.Close()
 }
 
@@ -196,16 +198,16 @@ func (serv *Server) WaitForGracefullyClose() error {
 }
 
 // 等待所有请求处理routine完成;
-// 此方法返回只有1个缓冲的channel, 只有当所有routine结束时channel才会有元素
+// 此方法返回无缓冲channel, 只有当所有routine结束时channel会关闭
 func (serv *Server) waitAllRoutineDone() chan struct{} {
-	flagChan := make(chan struct{}, 1)
+	flagChan := make(chan struct{})
 
 	go func() {
 		if nil != serv.wg {
 			serv.wg.Wait()
 		}
 
-		flagChan <- struct{}{}
+		close(flagChan)
 	}()
 
 	return flagChan
