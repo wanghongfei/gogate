@@ -9,7 +9,6 @@ import (
 	"github.com/wanghongfei/gogate/utils"
 )
 
-
 // 转发请求到指定微服务
 func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request) (*fasthttp.Response, error) {
 	// 获取服务信息
@@ -39,13 +38,12 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 
 	} else {
 		// 直接使用后面的地址
+		// todo 有优化空间, 不需要每次都new
 		hostList := strings.Split(info.Host, ",")
 		c = &fasthttp.LBClient{
 			Clients: createClients(hostList),
 		}
 	}
-
-
 
 	// 发请求
 	resp := new(fasthttp.Response)

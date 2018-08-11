@@ -4,7 +4,7 @@
 
 Go语言实现的Spring Cloud网关，目标是性能，即使用更少的资源达到更高的QPS。
 
-GoGate使用FastHttp库收发HTTP请求。
+GoGate使用以高性能著称的`FastHttp`库收发HTTP请求，且会为每个host单独创建一个`HostClient`以减少锁竞争。
 
 
 
