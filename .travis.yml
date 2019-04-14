@@ -1,15 +1,12 @@
 language: go
 
 go:
-  - "1.10.3"
+  - "1.12.4"
 
-before_install:
-  #- go get github.com/tools/godep
-  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
 install:
-  #- godep restore
-  - dep ensure
+  - go mod tidy
+  - go build
 
-script:
-  - go install github.com/wanghongfei/gogate
+#script:
+#  - go install github.com/wanghongfei/gogate
