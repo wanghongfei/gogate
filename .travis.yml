@@ -5,6 +5,7 @@ go:
 
 
 install:
+  - GO111MODULE=on
   - go mod tidy
   - go build
 
