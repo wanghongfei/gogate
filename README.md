@@ -58,27 +58,26 @@ gogate没有提供默认的Post Filter，可根据需要自己实现相应函数
 
 ## 构建
 
-Go >= 1.6; 依赖管理工具dep。如果没有安装dep, 可以执行
-
-```
-brew install dep
-```
+此项目使用go官网的依赖解决方法modules, 因此需要版本>=1.11。
 
 
 
-clone项目并下载依赖:
+在$GOPATH之外的任意目录下clone项目:
 
-```
-cd ${GOPATH}/src/github.com/wanghongfei
+```shell
 git clone https://github.com/wanghongfei/gogate
+```
 
-dep ensure
+安装依赖:
+
+```shell
+go mod tidy
 ```
 
 最后构建:
 
-```
-go build github.com/wanghongfei/gogate
+```shell
+go build
 ```
 
 

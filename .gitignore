@@ -4,3 +4,5 @@ vendor/
 _vendor*
 logs/
 bin/
+out/
+go.sum
