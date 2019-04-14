@@ -7,7 +7,6 @@ go:
 install:
   - GO111MODULE=on
   - go mod tidy
-  - go build
 
-#script:
-#  - go install github.com/wanghongfei/gogate
+script:
+  - go build
