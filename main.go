@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	asynclog "github.com/alecthomas/log4go"
+	log "github.com/alecthomas/log4go"
 	"github.com/wanghongfei/gogate/conf"
 	serv "github.com/wanghongfei/gogate/server"
 )
@@ -26,17 +26,17 @@ func main() {
 	)
 	checkErrorExit(err, true)
 
-	asynclog.Info("pre filters: %v", server.ExportAllPreFilters())
-	asynclog.Info("post filters: %v", server.ExportAllPostFilters())
+	log.Info("pre filters: %v", server.ExportAllPreFilters())
+	log.Info("post filters: %v", server.ExportAllPostFilters())
 
-	asynclog.Info("started gogate at %s:%d", conf.App.ServerConfig.Host, conf.App.ServerConfig.Port)
+	log.Info("started gogate at %s:%d", conf.App.ServerConfig.Host, conf.App.ServerConfig.Port)
 
 	// deferClose(server, time.Second * 5)
 
 	// 启动服务器
 	err = server.Start()
 	checkErrorExit(err, true)
-	asynclog.Info("listener has been closed")
+	log.Info("listener has been closed")
 
 	// 等待优雅关闭
 	err = server.WaitForGracefullyClose()
@@ -47,7 +47,7 @@ func main() {
 
 func checkErrorExit(err error, exit bool) {
 	if nil != err {
-		asynclog.Error(err)
+		log.Error(err)
 		if exit {
 			os.Exit(1)
 		}

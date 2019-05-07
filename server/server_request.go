@@ -2,7 +2,7 @@ package server
 
 import (
 	"errors"
-	log "github.com/wanghongfei/gogate/asynclog"
+	log "github.com/alecthomas/log4go"
 	"strings"
 
 	"github.com/valyala/fasthttp"
