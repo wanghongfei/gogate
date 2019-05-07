@@ -4,11 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
 	"strconv"
 	"sync"
 	"time"
 
-	asynclog "github.com/alecthomas/log4go"
+	log "github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
 	"github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
@@ -18,43 +19,41 @@ import (
 )
 
 type Server struct {
-	host string
-	port int
+	host 					string
+	port 					int
+
+	// 负载均衡组件
+	lb						LoadBalancer
 
 	// 保存listener引用, 用于关闭server
-	listen net.Listener
+	listen 					net.Listener
 	// 是否启用优雅关闭
-	graceShutdown bool
+	graceShutdown 			bool
 	// 优雅关闭最大等待时间
-	maxWait time.Duration
-	wg      *sync.WaitGroup
+	maxWait 				time.Duration
+	wg      				*sync.WaitGroup
 
 	// URI路由组件
-	Router *Router
+	Router 					*Router
 
 	// 过滤器
-	preFilters  []*PreFilter
-	postFilters []*PostFilter
+	preFilters  			[]*PreFilter
+	postFilters 			[]*PostFilter
 
 	// fasthttp对象
-	fastServ *fasthttp.Server
+	fastServ 				*fasthttp.Server
 
-	isStarted bool
-
-	// 保存每个instanceId对应的Http Client
-	// key: instanceId(string)
-	// val: *LBClient
-	proxyClients *InsLbClientSyncMap
+	isStarted 				bool
 
 	// 保存服务地址
 	// key: 服务名:版本号, 版本号为eureka注册信息中的metadata[version]值
 	// val: []*InstanceInfo
-	registryMap *InsInfoArrSyncMap
+	registryMap 			*InsInfoArrSyncMap
 
 	// 服务id(string) -> 此服务的限速器对象(*MemoryRateLimiter)
-	rateLimiterMap *RateLimiterSyncMap
+	rateLimiterMap 			*RateLimiterSyncMap
 
-	trafficStat *stat.TraficStat
+	trafficStat 			*stat.TraficStat
 }
 
 // 封装服务实例信息
@@ -106,8 +105,9 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int, useG
 		host: host,
 		port: port,
 
+		lb: &RoundRobinLoadBalancer{},
+
 		Router:       router,
-		proxyClients: NewInsMetaLbClientSyncMap(),
 
 		preFilters:  make([]*PreFilter, 0, 3),
 		postFilters: make([]*PostFilter, 0, 3),
@@ -215,10 +215,10 @@ func (serv *Server) waitAllRoutineDone() chan struct{} {
 
 // 更新路由配置文件
 func (serv *Server) ReloadRoute() error {
-	asynclog.Info("start reloading route info")
+	log.Info("start reloading route info")
 	err := serv.Router.ReloadRoute()
 	serv.rebuildRateLimiter()
-	asynclog.Info("route info reloaded")
+	log.Info("route info reloaded")
 
 	return err
 }
@@ -230,18 +230,27 @@ func (serv *Server) ExtractRoute() string {
 
 // 启动定时更新注册表的routine
 func (serv *Server) startRefreshRegistryInfo() {
-	asynclog.Info("refresh registry every %d sec", REGISTRY_REFRESH_INTERVAL)
+	log.Info("refresh registry every %d sec", REGISTRY_REFRESH_INTERVAL)
 
+	isBootstrap := true
 	go func() {
 		ticker := time.NewTicker(REGISTRY_REFRESH_INTERVAL * time.Second)
 
 		for {
-			asynclog.Info("refresh registry started")
+			log.Info("refresh registry started")
 			err := serv.refreshRegistry()
 			if nil != err {
-				asynclog.Error(err)
+				// 如果是第一次查询失败, 退出程序
+				if isBootstrap {
+					log.Error("failed to connect to eureka, err = %v, exit", err)
+					os.Exit(1)
+				}
+
+				log.Error(err)
 			}
-			asynclog.Info("done refreshing registry")
+			log.Info("done refreshing registry")
+
+			isBootstrap = false
 
 			<-ticker.C
 		}
@@ -252,7 +261,7 @@ func (serv *Server) recordTraffic(ctx *fasthttp.RequestCtx, success bool) {
 	if nil != serv.trafficStat {
 		servName := GetStringFromUserValue(ctx, SERVICE_NAME)
 
-		asynclog.Debug("log traffic for %s", servName)
+		log.Debug("log traffic for %s", servName)
 
 		info := &stat.TraficInfo{
 			ServiceId: servName,
@@ -282,7 +291,7 @@ func (serv *Server) rebuildRateLimiter() {
 		rl := serv.createRateLimiter(info)
 		if nil != rl {
 			serv.rateLimiterMap.Put(info.Id, rl)
-			asynclog.Debug("done building rateLimiter for %s", info.Id)
+			log.Debug("done building rateLimiter for %s", info.Id)
 		}
 	}
 }
@@ -298,13 +307,13 @@ func (serv *Server) createRateLimiter(info *ServiceInfo) throttle.RateLimiter {
 	client := redis.NewRedisClient(conf.App.RedisConfig.Addr, 5)
 	err := client.Connect()
 	if nil != err {
-		asynclog.Warn("failed to create ratelimiter, err = %v", err)
+		log.Warn("failed to create ratelimiter, err = %v", err)
 		return nil
 	}
 
 	rl, err := throttle.NewRedisRateLimiter(client, conf.App.RedisConfig.RateLimiterLua, info.Qps, info.Id)
 	if nil != err {
-		asynclog.Warn("failed to create ratelimiter, err = %v", err)
+		log.Warn("failed to create ratelimiter, err = %v", err)
 		return nil
 	}
 

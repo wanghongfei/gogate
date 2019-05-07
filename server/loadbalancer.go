@@ -5,7 +5,7 @@ import "sync/atomic"
 // 负载均衡接口
 type LoadBalancer interface {
 	// 从instance中选一个对象返回
-	choose(instances []*InstanceInfo) *InstanceInfo
+	Choose(instances []*InstanceInfo) *InstanceInfo
 }
 
 // 轮询均衡器实现
