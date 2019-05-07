@@ -56,14 +56,6 @@ type Server struct {
 	trafficStat 			*stat.TraficStat
 }
 
-// 封装服务实例信息
-type InstanceInfo struct {
-	// 格式为 host:port
-	Addr string
-	// eureka中的meta信息
-	Meta map[string]string
-}
-
 const (
 	// 默认最大连接数
 	MAX_CONNECTION = 5000

@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	log "github.com/alecthomas/log4go"
+	"github.com/wanghongfei/gogate/discovery"
 	"strings"
 
 	"github.com/valyala/fasthttp"
@@ -24,7 +25,7 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 
 		// 取出指定服务的所有实例
 		serviceInstances, exist := serv.registryMap.Get(appId)
-		if !exist {
+		if !exist || 0 == len(serviceInstances) {
 			return nil, errors.New("no instance " + appId + " for service " + appId + ", (service is offline)")
 		}
 
@@ -59,8 +60,8 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 }
 
 // 过滤出meta里version字段为指定值的实例
-func filterWithVersion(instances []*InstanceInfo, targetVersion string) []*InstanceInfo {
-	result := make([]*InstanceInfo, 5, 5)
+func filterWithVersion(instances []*discovery.InstanceInfo, targetVersion string) []*discovery.InstanceInfo {
+	result := make([]*discovery.InstanceInfo, 5, 5)
 
 	for _, ins := range instances {
 		if ins.Meta[META_VERSION] == targetVersion {

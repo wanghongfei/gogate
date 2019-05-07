@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/wanghongfei/gogate/discovery"
 	"sync"
 
 )
@@ -16,13 +17,13 @@ func NewInsInfoArrSyncMap() *InsInfoArrSyncMap {
 	}
 }
 
-func (ism *InsInfoArrSyncMap) Get(key string) ([]*InstanceInfo, bool) {
+func (ism *InsInfoArrSyncMap) Get(key string) ([]*discovery.InstanceInfo, bool) {
 	val, exist := ism.dataMap.Load(key)
 	if !exist {
 		return nil, false
 	}
 
-	info, ok := val.([]*InstanceInfo)
+	info, ok := val.([]*discovery.InstanceInfo)
 	if !ok {
 		return nil, false
 	}
@@ -30,13 +31,13 @@ func (ism *InsInfoArrSyncMap) Get(key string) ([]*InstanceInfo, bool) {
 	return info, true
 }
 
-func (ism *InsInfoArrSyncMap) Put(key string, val []*InstanceInfo) {
+func (ism *InsInfoArrSyncMap) Put(key string, val []*discovery.InstanceInfo) {
 	ism.dataMap.Store(key, val)
 }
 
-func (ism *InsInfoArrSyncMap) Each(eachFunc func(key string, val []*InstanceInfo) bool) {
+func (ism *InsInfoArrSyncMap) Each(eachFunc func(key string, val []*discovery.InstanceInfo) bool) {
 	ism.dataMap.Range(func(key, value interface{}) bool {
-		return eachFunc(key.(string), value.([]*InstanceInfo))
+		return eachFunc(key.(string), value.([]*discovery.InstanceInfo))
 	})
 }
 

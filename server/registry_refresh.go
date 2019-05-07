@@ -1,7 +1,7 @@
 package server
 
 import (
-	asynclog "github.com/alecthomas/log4go"
+	log "github.com/alecthomas/log4go"
 	"github.com/wanghongfei/go-eureka-client/eureka"
 	"github.com/wanghongfei/gogate/discovery"
 	"github.com/wanghongfei/gogate/utils"
@@ -13,37 +13,59 @@ const META_VERSION = "version"
 
 // 向eureka查询注册列表, 刷新本地列表
 func (serv *Server) refreshRegistry() error {
-	apps, err := discovery.QueryAll()
+	// apps, err := discovery.QueryAll()
+	instances, err := discovery.QueryEureka()
 	if nil != err {
 		return err
 	}
-	asynclog.Info("total app count: %d", len(apps))
+	log.Info("total app count: %d", len(instances))
 
-	if nil == apps {
-		asynclog.Error("no service found")
+	if nil == instances {
+		log.Error("no service found")
 		return nil
 	}
 
-	newRegistryMap := convertToMap(apps)
-	asynclog.Info("refreshing registry")
+	newRegistryMap := groupByService(instances)
+	log.Info("refreshing registry")
 
 	refreshRegistryMap(serv, newRegistryMap)
-	asynclog.Info("refreshing clients")
+	log.Info("refreshing clients")
 
 	return nil
 }
 
-func createInstanceInfos(hosts []string) []*InstanceInfo {
+func createInstanceInfos(hosts []string) []*discovery.InstanceInfo {
 	hostNum := len(hosts)
 
-	infos := make([]*InstanceInfo, 0, hostNum)
+	infos := make([]*discovery.InstanceInfo, 0, hostNum)
 	for _, host := range hosts {
-		infos = append(infos, &InstanceInfo{
+		infos = append(infos, &discovery.InstanceInfo{
 			Addr: host,
 		})
 	}
 
 	return infos
+}
+
+// 将所有实例按服务名进行分组
+func groupByService(instances []*discovery.InstanceInfo) *sync.Map {
+	servMap := new(sync.Map)
+	for _, ins := range instances {
+		infosGeneric, exist := servMap.Load(ins.ServiceName)
+		if !exist {
+			infosGeneric = make([]*discovery.InstanceInfo, 0, 5)
+			infos, _ := infosGeneric.([]*discovery.InstanceInfo)
+			infos = append(infos, ins)
+
+			servMap.Store(ins.ServiceName, infos)
+
+		} else {
+			infos, _ := infosGeneric.([]*discovery.InstanceInfo)
+			infos = append(infos, ins)
+		}
+	}
+
+	return servMap
 }
 
 // 将新服务列表保存为map
@@ -54,7 +76,7 @@ func convertToMap(apps []eureka.Application) *sync.Map {
 		servName := app.Name
 
 		// 遍历每一个实例
-		var instances []*InstanceInfo
+		var instances []*discovery.InstanceInfo
 		for _, ins := range app.Instances {
 			// 跳过无效实例
 			if nil == ins.Port || ins.Status != "UP" {
@@ -69,7 +91,8 @@ func convertToMap(apps []eureka.Application) *sync.Map {
 
 			instances = append(
 				instances,
-				&InstanceInfo{
+				&discovery.InstanceInfo{
+					ServiceName: servName,
 					Addr: addr,
 					Meta: meta,
 				},
