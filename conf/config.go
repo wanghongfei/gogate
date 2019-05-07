@@ -17,6 +17,7 @@ type GateConfig struct {
 	RedisConfig				*RedisConfig`yaml:"redis"`
 
 	EurekaConfig			*EurekaConfig`yaml:"eureka"`
+	ConsulConfig			*ConsulConfig`yaml:"consul"`
 
 	Traffic					*TrafficConfig`yaml:"traffic"`
 }
@@ -32,10 +33,16 @@ type ServerConfig struct {
 }
 
 type EurekaConfig struct {
+	Enable					bool`yaml:"enable"`
 	ConfigFile				string`yaml:"configFile"`
 	RouteFile				string`yaml:"routeFile"`
 	EvictionDuration		uint`yaml:"evictionDuration"`
 	HeartbeatInterval		int`yaml:"heartbeatInterval"`
+}
+
+type ConsulConfig struct {
+	Enable					bool`yaml:"enable"`
+	Address					string`yaml:"address"`
 }
 
 type TrafficConfig struct {

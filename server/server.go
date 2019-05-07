@@ -152,14 +152,31 @@ func (serv *Server) Start() error {
 	// 保存Listener指针
 	serv.listen = listen
 
+	bothEnabled := conf.App.EurekaConfig.Enable && conf.App.ConsulConfig.Enable
+	if bothEnabled {
+		return errors.New("eureka and consul are both enabled")
+	}
+
 	// 注册
 	go func() {
 		time.Sleep(500 * time.Millisecond)
 
-		// 初始化eureka
-		discovery.InitEurekaClient()
-		// 注册
-		discovery.StartRegister()
+		if conf.App.EurekaConfig.Enable {
+			log.Info("enable eureka")
+			// 初始化eureka
+			discovery.InitEurekaClient()
+			// 注册
+			discovery.StartRegister()
+
+		} else if conf.App.ConsulConfig.Enable {
+			log.Info("enable consul")
+			// 初始化consul
+			discovery.InitConsulClient()
+
+		} else {
+			panic("no registry center specified")
+		}
+
 		// 更新本地注册表
 		serv.startRefreshRegistryInfo()
 

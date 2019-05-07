@@ -11,6 +11,7 @@ server:
   timeout: 3000
 
 eureka:
+  enable: false
   # eureka配置文件名
   configFile: eureka.json
   # 路由配置文件名
@@ -19,6 +20,10 @@ eureka:
   evictionDuration: 30
   # 心跳间隔, 秒
   heartbeatInterval: 20
+
+consul:
+  enable: true
+  address: 127.0.0.1:8500
 
 
 traffic:

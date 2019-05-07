@@ -3,6 +3,7 @@ package server
 import (
 	log "github.com/alecthomas/log4go"
 	"github.com/wanghongfei/go-eureka-client/eureka"
+	"github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
 	"github.com/wanghongfei/gogate/utils"
 	"strconv"
@@ -13,11 +14,19 @@ const META_VERSION = "version"
 
 // 向eureka查询注册列表, 刷新本地列表
 func (serv *Server) refreshRegistry() error {
-	// apps, err := discovery.QueryAll()
-	instances, err := discovery.QueryEureka()
+	var instances []*discovery.InstanceInfo
+	var err error
+
+	if conf.App.EurekaConfig.Enable {
+		instances, err = discovery.QueryEureka()
+
+	} else if conf.App.ConsulConfig.Enable {
+		instances, err = discovery.QueryConsul()
+	}
 	if nil != err {
 		return err
 	}
+
 	log.Info("total app count: %d", len(instances))
 
 	if nil == instances {

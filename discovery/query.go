@@ -41,3 +41,26 @@ func QueryEureka() ([]*InstanceInfo, error) {
 
 	return instances, nil
 }
+
+func QueryConsul() ([]*InstanceInfo, error) {
+	servMap, err := consulClient.Agent().Services()
+	if nil != err {
+		return nil, err
+	}
+
+
+	instances := make([]*InstanceInfo, 0, 10)
+	for _, servInfo := range servMap {
+		instances = append(
+			instances,
+			&InstanceInfo{
+				ServiceName: servInfo.Service,
+				Addr: servInfo.Address + ":" + strconv.Itoa(servInfo.Port),
+				Meta: servInfo.Meta,
+			},
+		)
+	}
+
+	return instances, nil
+
+}
