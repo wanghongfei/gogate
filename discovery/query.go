@@ -1,6 +1,8 @@
 package discovery
 
 import (
+	log "github.com/alecthomas/log4go"
+	"github.com/hashicorp/consul/api"
 	"strconv"
 )
 
@@ -43,14 +45,37 @@ func QueryEureka() ([]*InstanceInfo, error) {
 }
 
 func QueryConsul() ([]*InstanceInfo, error) {
+	// 查出所有实例
 	servMap, err := consulClient.Agent().Services()
 	if nil != err {
 		return nil, err
 	}
 
+	// 查出所有健康实例
+	healthList, _, err := consulClient.Health().State("passing", &api.QueryOptions{})
+	if nil != err {
+		return nil, err
+	}
 
 	instances := make([]*InstanceInfo, 0, 10)
 	for _, servInfo := range servMap {
+		servName := servInfo.Service
+		servId := servInfo.ID
+
+		// 查查在healthList中有没有
+		isHealth := false
+		for _, healthInfo := range healthList {
+			if healthInfo.ServiceName == servName && healthInfo.ServiceID == servId {
+				isHealth = true
+				break
+			}
+		}
+
+		if !isHealth {
+			log.Warn("following instance is not health, skip; service name: %v, service id: %v", servName, servId)
+			continue
+		}
+
 		instances = append(
 			instances,
 			&InstanceInfo{
@@ -64,3 +89,4 @@ func QueryConsul() ([]*InstanceInfo, error) {
 	return instances, nil
 
 }
+
