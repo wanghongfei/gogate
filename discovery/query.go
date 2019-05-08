@@ -4,6 +4,7 @@ import (
 	log "github.com/alecthomas/log4go"
 	"github.com/hashicorp/consul/api"
 	"strconv"
+	"strings"
 )
 
 func QueryEureka() ([]*InstanceInfo, error) {
@@ -79,7 +80,7 @@ func QueryConsul() ([]*InstanceInfo, error) {
 		instances = append(
 			instances,
 			&InstanceInfo{
-				ServiceName: servInfo.Service,
+				ServiceName: strings.ToUpper(servInfo.Service),
 				Addr: servInfo.Address + ":" + strconv.Itoa(servInfo.Port),
 				Meta: servInfo.Meta,
 			},

@@ -253,7 +253,7 @@ version: 1.0
 server:
   # 向eureka注册自己时使用的服务名
   appName: gogate
-  host: 127.0.0.1
+  host: 0.0.0.0
   port: 8080
   # gateway最大连接数
   maxConnection: 1000
@@ -261,6 +261,7 @@ server:
   timeout: 3000
 
 eureka:
+  enable: false
   # eureka配置文件名
   configFile: eureka.json
   # 路由配置文件名
@@ -269,6 +270,11 @@ eureka:
   evictionDuration: 30
   # 心跳间隔, 秒
   heartbeatInterval: 20
+
+consul:
+  enable: true
+  # agent地址
+  address: 127.0.0.1:8500
 
 
 traffic:
