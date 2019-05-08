@@ -60,7 +60,7 @@ const (
 	// 默认最大连接数
 	MAX_CONNECTION = 5000
 	// 注册信息更新间隔, 秒
-	REGISTRY_REFRESH_INTERVAL = 60
+	REGISTRY_REFRESH_INTERVAL = 30
 )
 
 /*

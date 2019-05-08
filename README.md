@@ -10,7 +10,7 @@ GoGate使用以高性能著称的`FastHttp`库收发HTTP请求，且会为每个
 
 目前已经实现的功能有:
 
-- 基于Eureka的服务发现、注册
+- 基于Eureka(或Consul)的服务发现、注册
 - 请求路由、路由配置热更新
 - 负载均衡
 - 灰度发布(基于Eureka meta信息里的version字段分配流量)
