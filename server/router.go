@@ -4,13 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"strings"
-	"sync"
-
-	"github.com/wanghongfei/gogate/utils"
-	"gopkg.in/yaml.v2"
 )
 
 type Router struct {
@@ -18,7 +15,7 @@ type Router struct {
 	cfgPath		string
 
 	// path(string) -> *ServiceInfo
-	routeMap	*ServInfoSyncMap
+	routeMap	map[string]*ServiceInfo
 
 	ServInfos	[]*ServiceInfo
 }
@@ -72,7 +69,8 @@ func (r *Router) ReloadRoute() error {
 	}
 
 	r.ServInfos = servInfos
-	r.refreshRoute(newRoute.GetMap())
+	r.routeMap = newRoute
+	// r.refreshRoute(newRoute.GetMap())
 
 	return nil
 }
@@ -82,13 +80,10 @@ func (r *Router) ReloadRoute() error {
 */
 func (r *Router) ExtractRoute() string {
 	var strBuf bytes.Buffer
-	r.routeMap.Each(func(strKey string, info *ServiceInfo) bool {
-
+	for strKey, info := range r.routeMap {
 		str := fmt.Sprintf("%s -> id:%s, path:%s\n", strKey, info.Id, info.Prefix)
 		strBuf.WriteString(str)
-
-		return true
-	})
+	}
 
 	return strBuf.String()
 }
@@ -124,7 +119,7 @@ func (r *Router) Match(reqPath string) *ServiceInfo {
 			matchTerm = "/"
 		}
 
-		appId, exist := r.routeMap.Get(matchTerm)
+		appId, exist := r.routeMap[matchTerm]
 		if exist {
 			return appId
 		}
@@ -133,13 +128,7 @@ func (r *Router) Match(reqPath string) *ServiceInfo {
 	return nil
 }
 
-func (r *Router) refreshRoute(newRoute *sync.Map) {
-	exclusiveKeys, _ := utils.FindExclusiveKey(r.routeMap.GetMap(), newRoute)
-	utils.DelKeys(r.routeMap.GetMap(), exclusiveKeys)
-	utils.MergeSyncMap(newRoute, r.routeMap.GetMap())
-}
-
-func loadRoute(path string) (*ServInfoSyncMap, []*ServiceInfo, error) {
+func loadRoute(path string) (map[string]*ServiceInfo, []*ServiceInfo, error) {
 	// 打开配置文件
 	routeFile, err := os.Open(path)
 	if nil != err {
@@ -165,7 +154,7 @@ func loadRoute(path string) (*ServInfoSyncMap, []*ServiceInfo, error) {
 
 	// 构造 path->serviceId 映射
 	// var routeMap sync.Map
-	routeMap := NewServInfoSyncMap()
+	routeMap := make(map[string]*ServiceInfo)
 	for name, info := range ymlMap["services"] {
 		// 验证
 		err = validateServiceInfo(info)
@@ -173,7 +162,7 @@ func loadRoute(path string) (*ServInfoSyncMap, []*ServiceInfo, error) {
 			return nil, nil, errors.New("invalid config for " + name + ":" + err.Error())
 		}
 
-		routeMap.Put(info.Prefix, info)
+		routeMap[info.Prefix] = info
 		servInfos = append(servInfos, info)
 	}
 

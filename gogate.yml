@@ -4,14 +4,14 @@ server:
   # 向eureka注册自己时使用的服务名
   appName: gogate
   host: 0.0.0.0
-  port: 8080
+  port: 8001
   # gateway最大连接数
   maxConnection: 1000
   # gateway请求后端服务超时时间, 毫秒
   timeout: 3000
 
 eureka:
-  enable: false
+  enable: true
   # eureka配置文件名
   configFile: eureka.json
   # 路由配置文件名
@@ -22,7 +22,7 @@ eureka:
   heartbeatInterval: 20
 
 consul:
-  enable: true
+  enable: false
   address: 127.0.0.1:8500
 
 
