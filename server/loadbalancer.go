@@ -9,6 +9,8 @@ import (
 type LoadBalancer interface {
 	// 从instance中选一个对象返回
 	Choose(instances []*discovery.InstanceInfo) *discovery.InstanceInfo
+
+	ChooseByAddresses(addrs []string) string
 }
 
 // 轮询均衡器实现
@@ -18,14 +20,26 @@ type RoundRobinLoadBalancer struct {
 
 func (lb *RoundRobinLoadBalancer) Choose(instances []*discovery.InstanceInfo) *discovery.InstanceInfo {
 	total := len(instances)
+	next := lb.nextIndex(total)
 
-	target := lb.index % int64(total)
-	if target < 0 {
-		target = target * -1
+	return instances[next]
+}
+
+func (lb *RoundRobinLoadBalancer) ChooseByAddresses(addrs []string) string {
+	total := len(addrs)
+	next := lb.nextIndex(total)
+
+	return addrs[next]
+}
+
+func (lb *RoundRobinLoadBalancer) nextIndex(total int) int64 {
+	next := lb.index % int64(total)
+	if next < 0 {
+		next = next * -1
 	}
 
 	atomic.AddInt64(&lb.index, 1)
 
-	return instances[target]
+	return next
 }
 

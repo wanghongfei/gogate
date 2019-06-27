@@ -41,12 +41,10 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 
 	} else {
 		// 直接使用后面的地址
-		// todo 有优化空间, 不需要每次都new
 		hostList := strings.Split(info.Host, ",")
-		instances := createInstanceInfos(hostList)
 
-		target := serv.lb.Choose(instances)
-		req.URI().SetHost(target.Addr)
+		targetAddr := serv.lb.ChooseByAddresses(hostList)
+		req.URI().SetHost(targetAddr)
 	}
 
 	// 发请求
