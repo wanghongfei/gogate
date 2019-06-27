@@ -1,11 +1,10 @@
 package server
 
 import (
-	"strconv"
-
-	asynclog "github.com/alecthomas/log4go"
+	log "github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
 	"github.com/wanghongfei/gogate/utils"
+	"strconv"
 )
 
 const (
@@ -23,19 +22,22 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 		serv.markRoutineDone()
 	}()
 
+	// 计时器
+	sw := utils.NewStopwatch()
+
 	serv.markRoutineStart()
 
 	// 取出请求path
 	path := string(ctx.Path())
 	ctx.SetUserValue(REQUEST_PATH, path)
 
-	asynclog.Info("request received: %s %s", string(ctx.Method()), path)
+	log.Info("request received: %s %s", string(ctx.Method()), path)
 
 	// 处理reload请求
 	if path == RELOAD_PATH {
 		err := serv.ReloadRoute()
 		if nil != err {
-			asynclog.Error(err)
+			log.Error(err)
 			NewResponse(path, err.Error()).Send(ctx)
 			return
 		}
@@ -54,10 +56,9 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	}
 
 	// 发请求
-	sw := utils.NewStopwatch()
 	resp, err := serv.sendRequest(ctx, newReq)
 	if nil != err {
-		asynclog.Error(err)
+		log.Error(err)
 		NewResponse(path, err.Error()).Send(ctx)
 
 		serv.recordTraffic(ctx, false)
@@ -65,14 +66,18 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	}
 	serv.recordTraffic(ctx, true)
 
-	resp.Header.Add("Time", strconv.FormatInt(sw.Record(), 10))
-	resp.Header.Set("Server", "gogate")
 
 	// 调用Post过虑器
 	ok = invokePostFilters(serv, newReq, resp)
 	if !ok {
 		return
 	}
+
+	timeCost := sw.Record()
+	resp.Header.Add("Time", strconv.FormatInt(timeCost, 10))
+	resp.Header.Set("Server", "gogate")
+
+	log.Info("request finished, ms = %v", timeCost)
 
 	// 返回响应
 	sendResponse(ctx, resp)
@@ -120,7 +125,7 @@ func processPanic(ctx *fasthttp.RequestCtx, serv *Server) {
 
 func recoverPanic(ctx *fasthttp.RequestCtx, serv *Server) {
 	if r := recover(); r != nil {
-		asynclog.Error(r)
+		log.Error(r)
 		processPanic(ctx, serv)
 	}
 }
