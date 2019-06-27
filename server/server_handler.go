@@ -31,7 +31,7 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	path := string(ctx.Path())
 	ctx.SetUserValue(REQUEST_PATH, path)
 
-	log.Info("request received: %s %s", string(ctx.Method()), path)
+	// log.Info("request received: %s %s", string(ctx.Method()), path)
 
 	// 处理reload请求
 	if path == RELOAD_PATH {
@@ -77,7 +77,7 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	resp.Header.Add("Time", strconv.FormatInt(timeCost, 10))
 	resp.Header.Set("Server", "gogate")
 
-	log.Info("request finished, ms = %v", timeCost)
+	// log.Info("request finished, ms = %v", timeCost)
 
 	// 返回响应
 	sendResponse(ctx, resp)
