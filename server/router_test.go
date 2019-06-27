@@ -15,11 +15,9 @@ func TestLoadRoute(t *testing.T) {
 		t.Error(err)
 	}
 
-	routeMap.Each(func(name string, servInfo *ServiceInfo) bool {
+	for _, servInfo := range routeMap {
 		fmt.Printf("path = %v, id = %s\n", servInfo.Prefix, servInfo.Id)
-
-		return true
-	})
+	}
 }
 
 func TestRouter_Match(t *testing.T) {

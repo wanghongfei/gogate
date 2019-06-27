@@ -2,20 +2,21 @@ package server
 
 import (
 	"fmt"
+	"github.com/wanghongfei/gogate/discovery"
 	"testing"
 )
 
 func TestRoundRobinLoadBalancer_Choose(t *testing.T) {
 	lb := &RoundRobinLoadBalancer{}
 
-	instances := make([]*InstanceInfo, 0)
-	instances = append(instances, &InstanceInfo{
+	instances := make([]*discovery.InstanceInfo, 0)
+	instances = append(instances, &discovery.InstanceInfo{
 		Addr: "1",
 	})
-	instances = append(instances, &InstanceInfo{
+	instances = append(instances, &discovery.InstanceInfo{
 		Addr: "2",
 	})
-	instances = append(instances, &InstanceInfo{
+	instances = append(instances, &discovery.InstanceInfo{
 		Addr: "3",
 	})
 
