@@ -38,6 +38,7 @@ services:
   img-service:
     # 如果有host, 则不查注册中心直接使用此地址, 多个地址逗号分隔, 不能有空格
     host: localhost:8080,localhost:8080
+    name: img-service
     prefix: /img
     strip-prefix: true
 

@@ -265,10 +265,8 @@ func (serv *Server) startRefreshRegistryInfo() {
 	}()
 }
 
-func (serv *Server) recordTraffic(ctx *fasthttp.RequestCtx, success bool) {
+func (serv *Server) recordTraffic(servName string, success bool) {
 	if nil != serv.trafficStat {
-		servName := GetStringFromUserValue(ctx, SERVICE_NAME)
-
 		log.Debug("log traffic for %s", servName)
 
 		info := &stat.TraficInfo{

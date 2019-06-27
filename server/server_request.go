@@ -11,12 +11,19 @@ import (
 )
 
 // 转发请求到指定微服务
-func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request) (*fasthttp.Response, error) {
+// return:
+// Response: 响应对象;
+// string: 下游服务名
+// error: 错误
+func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request) (*fasthttp.Response, string, error) {
 	// 获取服务信息
 	info := ctx.UserValue(ROUTE_INFO).(*ServiceInfo)
 
+	var logRecordName string
 	// 需要从注册列表中查询地址
 	if info.Id != "" {
+		logRecordName = info.Id
+
 		// 获取Client
 		appId := strings.ToUpper(info.Id)
 
@@ -26,7 +33,7 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 		// 取出指定服务的所有实例
 		serviceInstances, exist := serv.registryMap.Get(appId)
 		if !exist || 0 == len(serviceInstances) {
-			return nil, errors.New("no instance " + appId + " for service " + appId + ", (service is offline)")
+			return nil, "", errors.New("no instance " + appId + " for service " + appId + ", (service is offline)")
 		}
 
 		// 按version过滤
@@ -40,6 +47,8 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 		req.URI().SetHost(targetInstance.Addr)
 
 	} else {
+		logRecordName = info.Name
+
 		// 直接使用后面的地址
 		hostList := strings.Split(info.Host, ",")
 
@@ -51,10 +60,10 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 	resp := new(fasthttp.Response)
 	err := fasthttp.Do(req, resp)
 	if nil != err {
-		return nil, err
+		return nil, "", err
 	}
 
-	return resp, nil
+	return resp, logRecordName, nil
 }
 
 // 过滤出meta里version字段为指定值的实例

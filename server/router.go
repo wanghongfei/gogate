@@ -24,6 +24,7 @@ type ServiceInfo struct {
 	Id				string
 	Prefix			string
 	Host			string
+	Name			string
 	StripPrefix		bool`yaml:"strip-prefix"`
 	Qps				int
 

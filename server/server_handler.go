@@ -56,15 +56,15 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	}
 
 	// 发请求
-	resp, err := serv.sendRequest(ctx, newReq)
+	resp, logRecordName, err := serv.sendRequest(ctx, newReq)
 	if nil != err {
 		log.Error(err)
 		NewResponse(path, err.Error()).Send(ctx)
 
-		serv.recordTraffic(ctx, false)
+		serv.recordTraffic(logRecordName, false)
 		return
 	}
-	serv.recordTraffic(ctx, true)
+	serv.recordTraffic(logRecordName, true)
 
 
 	// 调用Post过虑器
@@ -119,7 +119,7 @@ func processPanic(ctx *fasthttp.RequestCtx, serv *Server) {
 	NewResponse(path, "system error").SendWithStatus(ctx, 500)
 
 	// 记录流量
-	serv.recordTraffic(ctx, false)
+	serv.recordTraffic(GetStringFromUserValue(ctx, SERVICE_NAME), false)
 
 }
 

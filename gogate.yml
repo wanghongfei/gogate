@@ -28,7 +28,7 @@ consul:
 
 traffic:
   # 是否开启流量记录功能
-  enableTrafficRecord: true
+  enableTrafficRecord: false
   # 流量日志文件所在目录
   trafficLogDir: /tmp
 
