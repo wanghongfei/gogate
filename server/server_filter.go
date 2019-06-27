@@ -10,7 +10,7 @@ func (serv *Server) AppendPreFilter(pre *PreFilter) {
 		asynclog.Warn("cannot change filters after server started")
 	}
 
-	asynclog.Info("append pre filter: %s", pre.Name)
+	// asynclog.Info("append pre filter: %s", pre.Name)
 	serv.preFilters = append(serv.preFilters, pre)
 }
 
@@ -20,7 +20,7 @@ func (serv *Server) AppendPostFilter(post *PostFilter) {
 		asynclog.Warn("cannot change filters after server started")
 	}
 
-	asynclog.Info("append post filter: %s", post.Name)
+	// asynclog.Info("append post filter: %s", post.Name)
 	serv.postFilters = append(serv.postFilters, post)
 }
 
@@ -46,7 +46,7 @@ func (serv *Server) InsertPreFilterBehind(filterName string, filter *PreFilter) 
 		asynclog.Warn("cannot change filters after server started")
 	}
 
-	asynclog.Info("insert pre filter: %s", filter.Name)
+	// asynclog.Info("insert pre filter: %s", filter.Name)
 
 	targetIdx := serv.getPreFilterIndex(filterName)
 	if -1 == targetIdx {
@@ -70,7 +70,7 @@ func (serv *Server) InsertPostFilterBehind(filterName string, filter *PostFilter
 		asynclog.Warn("cannot change filters after server started")
 	}
 
-	asynclog.Info("insert post filter: %s", filter.Name)
+	// asynclog.Info("insert post filter: %s", filter.Name)
 
 	targetIdx := serv.getPostFilterIndex(filterName)
 	if -1 == targetIdx {
@@ -91,7 +91,7 @@ func (serv *Server) InsertPreFilterAhead(filter *PreFilter) {
 		asynclog.Warn("cannot change filters after server started")
 	}
 
-	asynclog.Info("insert pre filter: %s", filter.Name)
+	// asynclog.Info("insert pre filter: %s", filter.Name)
 
 	newFilterSlice := make([]*PreFilter, 0, 1 + len(serv.preFilters))
 	newFilterSlice = append(newFilterSlice, filter)
@@ -106,7 +106,7 @@ func (serv *Server) InsertPostFilterAhead(filter *PostFilter) {
 		asynclog.Warn("cannot change filters after server started")
 	}
 
-	asynclog.Info("insert post filter: %s", filter.Name)
+	// asynclog.Info("insert post filter: %s", filter.Name)
 
 	newFilterSlice := make([]*PostFilter, 0, 1 + len(serv.postFilters))
 	newFilterSlice = append(newFilterSlice, filter)

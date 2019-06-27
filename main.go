@@ -29,8 +29,6 @@ func main() {
 	log.Info("pre filters: %v", server.ExportAllPreFilters())
 	log.Info("post filters: %v", server.ExportAllPostFilters())
 
-	log.Info("started gogate at %s:%d", conf.App.ServerConfig.Host, conf.App.ServerConfig.Port)
-
 	// deferClose(server, time.Second * 5)
 
 	// 启动服务器
@@ -52,11 +50,4 @@ func checkErrorExit(err error, exit bool) {
 			os.Exit(1)
 		}
 	}
-}
-
-func deferClose(serv *serv.Server, latency time.Duration) {
-	go func() {
-		time.Sleep(latency)
-		serv.Shutdown()
-	}()
 }

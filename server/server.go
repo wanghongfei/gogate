@@ -162,14 +162,14 @@ func (serv *Server) Start() error {
 		time.Sleep(500 * time.Millisecond)
 
 		if conf.App.EurekaConfig.Enable {
-			log.Info("enable eureka")
+			log.Info("eureka enabled")
 			// 初始化eureka
 			discovery.InitEurekaClient()
 			// 注册
 			discovery.StartRegister()
 
 		} else if conf.App.ConsulConfig.Enable {
-			log.Info("enable consul")
+			log.Info("consul enabled")
 			// 初始化consul
 			discovery.InitConsulClient()
 
@@ -179,7 +179,6 @@ func (serv *Server) Start() error {
 
 		// 更新本地注册表
 		serv.startRefreshRegistryInfo()
-
 	}()
 
 	// 启动http server

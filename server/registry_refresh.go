@@ -35,10 +35,10 @@ func (serv *Server) refreshRegistry() error {
 	}
 
 	newRegistryMap := groupByService(instances)
-	log.Info("refreshing registry")
+	// log.Info("refreshing registry")
 
 	refreshRegistryMap(serv, newRegistryMap)
-	log.Info("refreshing clients")
+	// log.Info("refreshing clients")
 
 	return nil
 }
