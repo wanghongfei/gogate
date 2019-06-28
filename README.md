@@ -40,7 +40,7 @@ GoGate使用以高性能著称的`FastHttp`库收发HTTP请求，且会为每个
 
 ## 流程
 
-![arc](http://ovbyjzegm.bkt.clouddn.com/gogate-arc.jpg)
+![arc](https://s2.ax1x.com/2019/06/28/ZMJXDI.png)
 
 服务路由`service-match-pre-filter`: 根据URL匹配后端微服务
 
