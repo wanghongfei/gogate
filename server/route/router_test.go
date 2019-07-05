@@ -51,7 +51,7 @@ func TestRouter_Match(t *testing.T) {
 	fmt.Println(result)
 }
 
-func BenchmarkRouter_Match(b *testing.B) {
+func BenchmarkRouter_MatchLong(b *testing.B) {
 	r, err := NewRouter("../../route.yml")
 	if nil != err {
 		b.Fatal(err)

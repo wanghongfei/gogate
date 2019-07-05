@@ -5,7 +5,6 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
-	"strings"
 )
 
 type Router struct {
@@ -13,8 +12,7 @@ type Router struct {
 	cfgPath			string
 
 	// path(string) -> *ServiceInfo
-	// routeMap		map[string]*ServiceInfo
-	routeTrieTree	*TrieTree
+	pathMatcher		*PathMatcher
 
 	ServInfos		[]*ServiceInfo
 }
@@ -47,14 +45,14 @@ func (info *ServiceInfo) String() string {
 *
 */
 func NewRouter(path string) (*Router, error) {
-	routeTrieTree, servInfos, err := loadRoute(path)
+	matcher, servInfos, err := loadRoute(path)
 	if nil != err {
 		return nil, err
 	}
 
 
 	return &Router{
-		routeTrieTree: routeTrieTree,
+		pathMatcher: matcher,
 		cfgPath: path,
 		ServInfos: servInfos,
 	}, nil
@@ -64,13 +62,13 @@ func NewRouter(path string) (*Router, error) {
 * 重新加载路由器
 */
 func (r *Router) ReloadRoute() error {
-	newRoute, servInfos, err := loadRoute(r.cfgPath)
+	matcher, servInfos, err := loadRoute(r.cfgPath)
 	if nil != err {
 		return err
 	}
 
 	r.ServInfos = servInfos
-	r.routeTrieTree = newRoute
+	r.pathMatcher = matcher
 
 	return nil
 }
@@ -82,14 +80,11 @@ func (r *Router) ReloadRoute() error {
 *	返回最匹配的ServiceInfo
 */
 func (r *Router) Match(reqPath string) *ServiceInfo {
-	if !strings.HasSuffix(reqPath, "/") {
-		reqPath = reqPath + "/"
-	}
 
-	return r.routeTrieTree.SearchFirst(reqPath)
+	return r.pathMatcher.Match(reqPath)
 }
 
-func loadRoute(path string) (*TrieTree, []*ServiceInfo, error) {
+func loadRoute(path string) (*PathMatcher, []*ServiceInfo, error) {
 	// 打开配置文件
 	routeFile, err := os.Open(path)
 	if nil != err {
@@ -116,6 +111,8 @@ func loadRoute(path string) (*TrieTree, []*ServiceInfo, error) {
 	// 构造 path->serviceId 映射
 	// 保存到字典树中
 	tree := NewTrieTree()
+	// 保存到map中
+	routeMap := make(map[string]*ServiceInfo)
 	for name, info := range ymlMap["services"] {
 		// 验证
 		err = validateServiceInfo(info)
@@ -124,11 +121,17 @@ func loadRoute(path string) (*TrieTree, []*ServiceInfo, error) {
 		}
 
 		tree.PutString(info.Prefix, info)
+		routeMap[info.Prefix] = info
+
 		servInfos = append(servInfos, info)
 	}
 
 
-	return tree, servInfos, nil
+	matcher := &PathMatcher{
+		routeMap: routeMap,
+		routeTrieTree: tree,
+	}
+	return matcher, servInfos, nil
 }
 
 func validateServiceInfo(info *ServiceInfo) error {
