@@ -47,8 +47,3 @@ services:
     prefix: /engine
     strip-prefix: true
 
-# 上面都没有匹配到时
-  common-service:
-    id: common-service
-    prefix: /
-    strip-prefix: false

@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/wanghongfei/gogate/server/route"
 	"net"
 	"os"
 	"strconv"
@@ -34,7 +35,7 @@ type Server struct {
 	wg      				*sync.WaitGroup
 
 	// URI路由组件
-	Router 					*Router
+	Router 					*route.Router
 
 	// 过滤器
 	preFilters  			[]*PreFilter
@@ -87,7 +88,7 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int, useG
 	}
 
 	// 创建router
-	router, err := NewRouter(routePath)
+	router, err := route.NewRouter(routePath)
 	if nil != err {
 		return nil, err
 	}
@@ -182,6 +183,7 @@ func (serv *Server) Start() error {
 	}()
 
 	// 启动http server
+	log.Info("starting gogate at %s:%d, pid: %d", serv.host, serv.port, os.Getpid())
 	return serv.fastServ.Serve(listen)
 }
 
@@ -229,11 +231,6 @@ func (serv *Server) ReloadRoute() error {
 	log.Info("route info reloaded")
 
 	return err
-}
-
-// 将全部路由信息以字符串形式返回
-func (serv *Server) ExtractRoute() string {
-	return serv.Router.ExtractRoute()
 }
 
 // 启动定时更新注册表的routine
@@ -304,7 +301,7 @@ func (serv *Server) rebuildRateLimiter() {
 
 // 创建限速器对象
 // 如果配置文件中设置了使用redis, 则创建RedisRateLimiter, 否则创建MemoryRateLimiter
-func (serv *Server) createRateLimiter(info *ServiceInfo) throttle.RateLimiter {
+func (serv *Server) createRateLimiter(info *route.ServiceInfo) throttle.RateLimiter {
 	enableRedis := conf.App.RedisConfig.Enabled
 	if !enableRedis {
 		return throttle.NewMemoryRateLimiter(info.Qps)

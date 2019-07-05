@@ -42,7 +42,8 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 			return
 		}
 
-		ctx.WriteString(serv.ExtractRoute())
+		// ctx.WriteString(serv.ExtractRoute())
+		ctx.WriteString("ok")
 		return
 	}
 

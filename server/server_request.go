@@ -4,6 +4,7 @@ import (
 	"errors"
 	log "github.com/alecthomas/log4go"
 	"github.com/wanghongfei/gogate/discovery"
+	"github.com/wanghongfei/gogate/server/route"
 	"strings"
 
 	"github.com/valyala/fasthttp"
@@ -17,7 +18,7 @@ import (
 // error: 错误
 func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request) (*fasthttp.Response, string, error) {
 	// 获取服务信息
-	info := ctx.UserValue(ROUTE_INFO).(*ServiceInfo)
+	info := ctx.UserValue(ROUTE_INFO).(*route.ServiceInfo)
 
 	var logRecordName string
 	// 需要从注册列表中查询地址
@@ -79,7 +80,7 @@ func filterWithVersion(instances []*discovery.InstanceInfo, targetVersion string
 	return result
 }
 
-func chooseVersion(canaryInfos []*CanaryInfo) string {
+func chooseVersion(canaryInfos []*route.CanaryInfo) string {
 	if nil == canaryInfos || len(canaryInfos) == 0 {
 		return ""
 	}

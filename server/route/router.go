@@ -1,9 +1,7 @@
-package server
+package route
 
 import (
-	"bytes"
 	"errors"
-	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
@@ -12,12 +10,13 @@ import (
 
 type Router struct {
 	// 配置文件路径
-	cfgPath		string
+	cfgPath			string
 
 	// path(string) -> *ServiceInfo
-	routeMap	map[string]*ServiceInfo
+	// routeMap		map[string]*ServiceInfo
+	routeTrieTree	*TrieTree
 
-	ServInfos	[]*ServiceInfo
+	ServInfos		[]*ServiceInfo
 }
 
 type ServiceInfo struct {
@@ -48,13 +47,14 @@ func (info *ServiceInfo) String() string {
 *
 */
 func NewRouter(path string) (*Router, error) {
-	routeMap, servInfos, err := loadRoute(path)
+	routeTrieTree, servInfos, err := loadRoute(path)
 	if nil != err {
 		return nil, err
 	}
 
+
 	return &Router{
-		routeMap: routeMap,
+		routeTrieTree: routeTrieTree,
 		cfgPath: path,
 		ServInfos: servInfos,
 	}, nil
@@ -70,23 +70,9 @@ func (r *Router) ReloadRoute() error {
 	}
 
 	r.ServInfos = servInfos
-	r.routeMap = newRoute
-	// r.refreshRoute(newRoute.GetMap())
+	r.routeTrieTree = newRoute
 
 	return nil
-}
-
-/*
-* 将路由信息转换成string返回
-*/
-func (r *Router) ExtractRoute() string {
-	var strBuf bytes.Buffer
-	for strKey, info := range r.routeMap {
-		str := fmt.Sprintf("%s -> id:%s, path:%s\n", strKey, info.Id, info.Prefix)
-		strBuf.WriteString(str)
-	}
-
-	return strBuf.String()
 }
 
 /*
@@ -100,36 +86,10 @@ func (r *Router) Match(reqPath string) *ServiceInfo {
 		reqPath = reqPath + "/"
 	}
 
-	if "/" == reqPath {
-		reqPath = "//"
-	}
-
-	// 以/为分隔符, 从后向前匹配
-	// 每次循环都去掉最后一个/XXXX节点
-	term := reqPath
-	for {
-		lastSlash := strings.LastIndex(term, "/")
-		if -1 == lastSlash {
-			break
-		}
-
-		matchTerm := term[0:lastSlash]
-		term = matchTerm
-
-		if "" == matchTerm {
-			matchTerm = "/"
-		}
-
-		appId, exist := r.routeMap[matchTerm]
-		if exist {
-			return appId
-		}
-	}
-
-	return nil
+	return r.routeTrieTree.SearchFirst(reqPath)
 }
 
-func loadRoute(path string) (map[string]*ServiceInfo, []*ServiceInfo, error) {
+func loadRoute(path string) (*TrieTree, []*ServiceInfo, error) {
 	// 打开配置文件
 	routeFile, err := os.Open(path)
 	if nil != err {
@@ -154,8 +114,8 @@ func loadRoute(path string) (map[string]*ServiceInfo, []*ServiceInfo, error) {
 	servInfos := make([]*ServiceInfo, 0, 10)
 
 	// 构造 path->serviceId 映射
-	// var routeMap sync.Map
-	routeMap := make(map[string]*ServiceInfo)
+	// 保存到字典树中
+	tree := NewTrieTree()
 	for name, info := range ymlMap["services"] {
 		// 验证
 		err = validateServiceInfo(info)
@@ -163,11 +123,12 @@ func loadRoute(path string) (map[string]*ServiceInfo, []*ServiceInfo, error) {
 			return nil, nil, errors.New("invalid config for " + name + ":" + err.Error())
 		}
 
-		routeMap[info.Prefix] = info
+		tree.PutString(info.Prefix, info)
 		servInfos = append(servInfos, info)
 	}
 
-	return routeMap, servInfos, nil
+
+	return tree, servInfos, nil
 }
 
 func validateServiceInfo(info *ServiceInfo) error {

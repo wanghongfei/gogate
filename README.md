@@ -117,7 +117,7 @@ server.WaitForGracefullyClose()
 
 - 当`id`不为空时，会使用eureka的注册信息查询此服务的地址
 - 当`host`不为空时, 会优先使用此字段指定的服务地址, 多个地址用逗号分隔
-- 当请求路径匹配多个`prefix`时，配置文件中`prefix`最长的获胜
+- 使用`Trie Tree`进行前缀匹配。
 
 当路由配置文件发生变动时，访问
 
@@ -157,7 +157,6 @@ services:
 
   trends-service:
     id: trends-service
-    # 请求路径当匹配多个prefix时, 长的获胜
     prefix: /trends
     strip-prefix: false
     # 设置qps限制, 每秒最多请求数
@@ -174,11 +173,6 @@ services:
     prefix: /img
     strip-prefix: false
 
-# 上面都没有匹配到时
-  common-service:
-    id: common-service
-    prefix: /
-    strip-prefix: false
 ```
 
 

@@ -1,4 +1,4 @@
-package server
+package route
 
 import (
 	"fmt"
@@ -10,18 +10,21 @@ import (
 )
 
 func TestLoadRoute(t *testing.T) {
-	routeMap, _, err := loadRoute("../route.yml")
-	if nil != err {
-		t.Error(err)
-	}
-
-	for _, servInfo := range routeMap {
-		fmt.Printf("path = %v, id = %s\n", servInfo.Prefix, servInfo.Id)
-	}
+	//routeMap, _, err := loadRoute("../route.yml")
+	//if nil != err {
+	//	t.Error(err)
+	//}
+	//
+	//for _, servInfo := range routeMap {
+	//	fmt.Printf("path = %v, id = %s\n", servInfo.Prefix, servInfo.Id)
+	//}
 }
 
 func TestRouter_Match(t *testing.T) {
-	r, _ := NewRouter("../route.yml")
+	r, err := NewRouter("../../route.yml")
+	if nil != err {
+		t.Fatal(err)
+	}
 
 	result := r.Match("/user")
 	fmt.Println(result)
@@ -36,22 +39,28 @@ func TestRouter_Match(t *testing.T) {
 	}
 
 	result = r.Match("/aaaa")
-	if "common-service" != result.Id {
+	if nil != result {
 		t.Errorf("/aaaa mismatch, %s\n", result)
 	}
 	fmt.Println(result)
 
-	result = r.Match("/us")
-	if "common-service" != result.Id {
-		t.Errorf("/us mismatch, %s\n", result)
-	}
-	fmt.Println(result)
-
 	result = r.Match("/img")
-	if "localhost:4444,localhost:5555" != result.Host {
+	if "localhost:8080,localhost:8080" != result.Host {
 		t.Errorf("/img mismatch, %s\n", result)
 	}
 	fmt.Println(result)
+}
+
+func BenchmarkRouter_Match(b *testing.B) {
+	r, err := NewRouter("../../route.yml")
+	if nil != err {
+		b.Fatal(err)
+	}
+
+
+	for ix := 0; ix < b.N; ix++ {
+		r.Match("/order/a/b/c/d/e/f/g")
+	}
 }
 
 func TestYaml(t *testing.T) {
