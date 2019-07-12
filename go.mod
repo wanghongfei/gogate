@@ -14,7 +14,7 @@ require (
 	github.com/alecthomas/log4go v0.0.0-20180109082532-d146e6b86faa
 	github.com/hashicorp/consul/api v1.0.1
 	github.com/mediocregopher/radix.v2 v0.0.0-20181115013041-b67df6e626f9
-	github.com/valyala/fasthttp v1.3.0
+	github.com/valyala/fasthttp v1.4.0
 	github.com/wanghongfei/go-eureka-client v1.1.0
 	gopkg.in/yaml.v2 v2.2.2
 )
