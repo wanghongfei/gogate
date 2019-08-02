@@ -1,4 +1,4 @@
-package server
+package lb
 
 import (
 	"github.com/wanghongfei/gogate/discovery"

@@ -3,7 +3,9 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/wanghongfei/gogate/server/lb"
 	"github.com/wanghongfei/gogate/server/route"
+	"github.com/wanghongfei/gogate/server/syncmap"
 	"net"
 	"os"
 	"strconv"
@@ -24,7 +26,7 @@ type Server struct {
 	port 					int
 
 	// 负载均衡组件
-	lb						LoadBalancer
+	lb						lb.LoadBalancer
 
 	// 保存listener引用, 用于关闭server
 	listen 					net.Listener
@@ -49,10 +51,10 @@ type Server struct {
 	// 保存服务地址
 	// key: 服务名:版本号, 版本号为eureka注册信息中的metadata[version]值
 	// val: []*InstanceInfo
-	registryMap 			*InsInfoArrSyncMap
+	registryMap 			*syncmap.InsInfoArrSyncMap
 
 	// 服务id(string) -> 此服务的限速器对象(*MemoryRateLimiter)
-	rateLimiterMap 			*RateLimiterSyncMap
+	rateLimiterMap 			*syncmap.RateLimiterSyncMap
 
 	trafficStat 			*stat.TraficStat
 }
@@ -98,7 +100,7 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int, useG
 		host: host,
 		port: port,
 
-		lb: &RoundRobinLoadBalancer{},
+		lb: &lb.RoundRobinLoadBalancer{},
 
 		Router:       router,
 
@@ -283,7 +285,7 @@ func (serv *Server) recordTraffic(servName string, success bool) {
 // 给路由表中的每个服务重新创建限速器;
 // 在更新过route.yml配置文件时调用
 func (serv *Server) rebuildRateLimiter() {
-	serv.rateLimiterMap = NewRateLimiterSyncMap()
+	serv.rateLimiterMap = syncmap.NewRateLimiterSyncMap()
 
 	// 创建每个服务的限速器
 	for _, info := range serv.Router.ServInfos {

@@ -1,4 +1,4 @@
-package server
+package syncmap
 
 import (
 	"github.com/wanghongfei/gogate/discovery"

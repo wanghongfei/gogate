@@ -5,6 +5,7 @@ import (
 	"github.com/wanghongfei/go-eureka-client/eureka"
 	"github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
+	"github.com/wanghongfei/gogate/server/syncmap"
 	"github.com/wanghongfei/gogate/utils"
 	"strconv"
 	"sync"
@@ -119,7 +120,7 @@ func convertToMap(apps []eureka.Application) *sync.Map {
 // newRegistry: 刚从eureka查出的最新服务列表
 func refreshRegistryMap(s *Server, newRegistry *sync.Map) {
 	if nil == s.registryMap {
-		s.registryMap = NewInsInfoArrSyncMap()
+		s.registryMap = syncmap.NewInsInfoArrSyncMap()
 	}
 
 	// 找出本地列表存在, 但新列表中不存在的服务
