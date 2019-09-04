@@ -2,6 +2,7 @@ package throttle
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -31,7 +32,7 @@ func NewRedisRateLimiter(client *redis.RedisClient, luaPath string, qps int, ser
 	if !client.IsConnected() {
 		err := client.Connect()
 		if nil != err {
-			return nil, err
+			return nil, fmt.Errorf("failed to connect to redis => %w", err)
 		}
 	}
 

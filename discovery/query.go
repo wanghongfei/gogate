@@ -1,6 +1,7 @@
 package discovery
 
 import (
+	"fmt"
 	log "github.com/alecthomas/log4go"
 	"github.com/hashicorp/consul/api"
 	"strconv"
@@ -10,7 +11,7 @@ import (
 func QueryEureka() ([]*InstanceInfo, error) {
 	apps, err := euClient.GetApplications()
 	if nil != err {
-		return nil, err
+		return nil, fmt.Errorf("%w => failed to query eureka", err)
 	}
 
 	var instances []*InstanceInfo
@@ -55,7 +56,7 @@ func QueryConsul() ([]*InstanceInfo, error) {
 	// 查出所有健康实例
 	healthList, _, err := consulClient.Health().State("passing", &api.QueryOptions{})
 	if nil != err {
-		return nil, err
+		return nil, fmt.Errorf("failed to query consul => %w", err)
 	}
 
 	instances := make([]*InstanceInfo, 0, 10)

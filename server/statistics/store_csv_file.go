@@ -29,7 +29,7 @@ func (fs *CsvFileTraficInfoStore) Send(info *TraficInfo) error {
 	buf := fs.ToCsv(info)
 	f, err := fs.getFile(info.ServiceId)
 	if nil != err {
-		return err
+		return fmt.Errorf("failed to getFile => %w", err)
 	}
 
 	buf.WriteTo(f)
@@ -43,7 +43,7 @@ func (fs *CsvFileTraficInfoStore) Close() error {
 	for _, file := range fs.fileMap {
 		closeErr := file.Close()
 		if nil != closeErr {
-			fmt.Sprintf("%s%s;", errMsg, closeErr.Error())
+			errMsg = fmt.Sprintf("%s%s;", errMsg, closeErr.Error())
 		}
 	}
 
@@ -62,7 +62,7 @@ func (fs *CsvFileTraficInfoStore) getFile(servId string) (*os.File, error) {
 		fName := fs.genFileName(servId)
 		f, err := os.OpenFile(fName, os.O_CREATE | os.O_APPEND | os.O_RDWR, 0644)
 		if nil != err {
-			return nil, err
+			return nil, fmt.Errorf("failed to open file => %w", err)
 		}
 
 		logFile = f

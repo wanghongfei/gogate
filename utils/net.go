@@ -2,13 +2,14 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"net"
 )
 
 func GetFirstNoneLoopIp() (string, error) {
 	addrs, err := net.InterfaceAddrs()
 	if nil != err {
-		return "", err
+		return "", fmt.Errorf("failed to fetch interfaces => %w", err)
 	}
 
 	for _, addr := range addrs {

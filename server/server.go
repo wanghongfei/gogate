@@ -78,11 +78,11 @@ const (
  */
 func NewGatewayServer(host string, port int, routePath string, maxConn int, useGracefullyShutdown bool, maxWait time.Duration) (*Server, error) {
 	if "" == host {
-		return nil, errors.New("invalid host")
+		return nil, fmt.Errorf("invalid host %s", host)
 	}
 
 	if port <= 0 || port > 65535 {
-		return nil, errors.New("invalid port")
+		return nil, fmt.Errorf("invalid port %d", port)
 	}
 
 	if maxConn <= 0 {
@@ -92,7 +92,7 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int, useG
 	// 创建router
 	router, err := route.NewRouter(routePath)
 	if nil != err {
-		return nil, err
+		return nil, fmt.Errorf("failed to create router => %w", err)
 	}
 
 	// 创建Server对象
@@ -142,9 +142,9 @@ func (serv *Server) Start() error {
 	serv.isStarted = true
 
 	// 监听端口
-	listen, err := net.Listen("tcp", serv.host+":"+strconv.Itoa(serv.port))
+	listen, err := net.Listen("tcp", serv.host + ":" + strconv.Itoa(serv.port))
 	if nil != err {
-		return nil
+		return fmt.Errorf("failed to listen at %s:%d => %w", serv.host, serv.port, err)
 	}
 
 	// 是否启用优雅关闭功能
@@ -194,7 +194,12 @@ func (serv *Server) Shutdown() error {
 	serv.isStarted = false
 	discovery.UnRegister()
 
-	return serv.listen.Close()
+	err := serv.listen.Close()
+	if nil != err {
+		return fmt.Errorf("failed to shutdown server => %w", err)
+	}
+
+	return nil
 }
 
 // 需要在Shutdown()之后调用, 此方法会一直block直到所有连接关闭或者超时
@@ -232,7 +237,11 @@ func (serv *Server) ReloadRoute() error {
 	serv.rebuildRateLimiter()
 	log.Info("route info reloaded")
 
-	return err
+	if nil != err {
+		return fmt.Errorf("failed to reload route => %w", err)
+	}
+
+	return nil
 }
 
 // 启动定时更新注册表的routine

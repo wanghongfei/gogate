@@ -2,6 +2,7 @@ package route
 
 import (
 	"errors"
+	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
@@ -47,7 +48,7 @@ func (info *ServiceInfo) String() string {
 func NewRouter(path string) (*Router, error) {
 	matcher, servInfos, err := loadRoute(path)
 	if nil != err {
-		return nil, err
+		return nil, fmt.Errorf("failed to load route info => %e", err)
 	}
 
 
@@ -64,7 +65,7 @@ func NewRouter(path string) (*Router, error) {
 func (r *Router) ReloadRoute() error {
 	matcher, servInfos, err := loadRoute(r.cfgPath)
 	if nil != err {
-		return err
+		return fmt.Errorf("failed to load route info => %e", err)
 	}
 
 	r.ServInfos = servInfos
@@ -88,7 +89,7 @@ func loadRoute(path string) (*PathMatcher, []*ServiceInfo, error) {
 	// 打开配置文件
 	routeFile, err := os.Open(path)
 	if nil != err {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed to open file => %w", err)
 	}
 	defer routeFile.Close()
 
@@ -117,7 +118,7 @@ func loadRoute(path string) (*PathMatcher, []*ServiceInfo, error) {
 		// 验证
 		err = validateServiceInfo(info)
 		if nil != err {
-			return nil, nil, errors.New("invalid config for " + name + ":" + err.Error())
+			return nil, nil, fmt.Errorf("invalid config for %s => %w", name, err)
 		}
 
 		tree.PutString(info.Prefix, info)
