@@ -64,17 +64,13 @@ func groupByService(instances []*discovery.InstanceInfo) *sync.Map {
 		infosGeneric, exist := servMap.Load(ins.ServiceName)
 		if !exist {
 			infosGeneric = make([]*discovery.InstanceInfo, 0, 5)
-			infos, _ := infosGeneric.([]*discovery.InstanceInfo)
-			infos = append(infos, ins)
-
-			servMap.Store(ins.ServiceName, infos)
+			infosGeneric = append(infosGeneric.([]*discovery.InstanceInfo), ins)
 
 		} else {
-			infos, _ := infosGeneric.([]*discovery.InstanceInfo)
-			infos = append(infos, ins)
+			infosGeneric = append(infosGeneric.([]*discovery.InstanceInfo), ins)
 		}
+		servMap.Store(ins.ServiceName, infosGeneric)
 	}
-
 	return servMap
 }
 
