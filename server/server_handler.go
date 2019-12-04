@@ -17,10 +17,7 @@ const (
 
 // HTTP请求处理方法.
 func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
-	defer func() {
-		recoverPanic(ctx, serv)
-		serv.markRoutineDone()
-	}()
+	defer recoverPanic(ctx, serv)
 
 	// 计时器
 	sw := utils.NewStopwatch()
@@ -128,6 +125,8 @@ func recoverPanic(ctx *fasthttp.RequestCtx, serv *Server) {
 	if r := recover(); r != nil {
 		log.Error(r)
 		processPanic(ctx, serv)
+
+		serv.markRoutineDone()
 	}
 }
 
