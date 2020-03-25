@@ -12,13 +12,13 @@ func ServiceMatchPreFilter(s *Server, ctx *fasthttp.RequestCtx, newRequest *fast
 	if nil == servInfo {
 		// 没匹配到
 		ctx.Response.SetStatusCode(404)
-		ctx.WriteString("no match")
+		NewResponse(ctx.UserValue(REQUEST_PATH).(string), "no match").Send(ctx)
 		return false
 	}
 	ctx.SetUserValue(ROUTE_INFO, servInfo)
 	ctx.SetUserValue(SERVICE_NAME, servInfo.Id)
 
-	Log.Debug("%s matched to %s", uri, servInfo.Id)
+	Log.Debugf("%s matched to %s", uri, servInfo.Id)
 
 	return true
 }

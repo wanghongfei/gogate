@@ -33,13 +33,16 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 		// 取出指定服务的所有实例
 		serviceInstances, exist := serv.registryMap.Get(appId)
 		if !exist || 0 == len(serviceInstances) {
-			// return nil, "", errors.New("no instance " + appId + " for service " + appId + ", (service is offline)")
 			return nil, "", utils.Errorf("no instance %s for service (service is offline)", appId)
 		}
 
 		// 按version过滤
 		if "" != version {
 			serviceInstances = filterWithVersion(serviceInstances, version)
+			if 0 == len(serviceInstances) {
+				// 此version下没有实例
+				return nil, "", utils.Errorf("no instance %s:%s for service", appId, version)
+			}
 		}
 
 		// 负载均衡
@@ -69,7 +72,7 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 
 // 过滤出meta里version字段为指定值的实例
 func filterWithVersion(instances []*discovery.InstanceInfo, targetVersion string) []*discovery.InstanceInfo {
-	result := make([]*discovery.InstanceInfo, 5, 5)
+	result := make([]*discovery.InstanceInfo, 0, 5)
 
 	for _, ins := range instances {
 		if ins.Meta[META_VERSION] == targetVersion {

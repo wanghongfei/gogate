@@ -16,14 +16,14 @@ func RateLimitPreFilter(s *Server, ctx *fasthttp.RequestCtx, newRequest *fasthtt
 	// 取出对应service的限速器
 	if 0 == info.Qps {
 		// 如果没有说明不需要限速
-		Log.Debug("no limiter for service %s", info.Id)
+		Log.Debugf("no limiter for service %s", info.Id)
 		return true
 	}
 
 	// 取出限速器
 	rl, ok := s.rateLimiterMap.Get(info.Id)
 	if !ok {
-		Log.Error("lack rate limiter for %s", info.Id)
+		Log.Errorf("lack rate limiter for %s", info.Id)
 		return true
 	}
 
@@ -31,7 +31,7 @@ func RateLimitPreFilter(s *Server, ctx *fasthttp.RequestCtx, newRequest *fasthtt
 	if !pass {
 		// token不足
 		NewResponse(ctx.UserValue(REQUEST_PATH).(string), "reach QPS limitation").Send(ctx)
-		Log.Info("drop request for %s due to rate limitation", info.Id)
+		Log.Infof("drop request for %s due to rate limitation", info.Id)
 	}
 
 	return pass

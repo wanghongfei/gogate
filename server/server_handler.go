@@ -123,7 +123,7 @@ func processPanic(ctx *fasthttp.RequestCtx, serv *Server) {
 
 func recoverPanic(ctx *fasthttp.RequestCtx, serv *Server) {
 	if r := recover(); r != nil {
-		Log.Error(r)
+		Log.Errorf("panic: %v", r)
 		processPanic(ctx, serv)
 
 		serv.markRoutineDone()

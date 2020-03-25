@@ -23,7 +23,7 @@ func UrlRewritePreFilter(s *Server, ctx *fasthttp.RequestCtx, newRequest *fastht
 		}
 		newRequest.URI().SetPath(newPath)
 
-		Log.Debug("rewrite path from %s to %s", original, newPath)
+		Log.Debugf("rewrite path from %s to %s", original, newPath)
 	}
 
 	return true
