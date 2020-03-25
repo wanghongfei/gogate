@@ -1,9 +1,9 @@
 package server
 
 import (
-	log "github.com/alecthomas/log4go"
 	"github.com/wanghongfei/go-eureka-client/eureka"
 	"github.com/wanghongfei/gogate/conf"
+	. "github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
 	"github.com/wanghongfei/gogate/server/syncmap"
 	"github.com/wanghongfei/gogate/utils"
@@ -28,10 +28,10 @@ func (serv *Server) refreshRegistry() error {
 		return utils.Errorf("failed to communicate with discovery service => %w", err)
 	}
 
-	log.Info("total app count: %d", len(instances))
+	Log.Infof("total app count: %d", len(instances))
 
 	if nil == instances {
-		log.Info("no service found")
+		Log.Info("no service found")
 		return nil
 	}
 

@@ -5,8 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/alecthomas/log4go"
-	asynclog "github.com/alecthomas/log4go"
 	"gopkg.in/yaml.v2"
 )
 
@@ -20,6 +18,13 @@ type GateConfig struct {
 	ConsulConfig			*ConsulConfig`yaml:"consul"`
 
 	Traffic					*TrafficConfig`yaml:"traffic"`
+
+	Log struct {
+		ConsoleOnly bool`yaml:"console-only"`
+		FilePattern string`yaml:"file-pattern"`
+		FileLink string`yaml:"file-link"`
+		Directory string`yaml:"directory"`
+	}`yaml:"log"`
 }
 
 type ServerConfig struct {
@@ -62,7 +67,7 @@ var App *GateConfig
 func LoadConfig(filename string) {
 	f, err := os.Open(filename)
 	if nil != err {
-		log4go.Error(err)
+		Log.Error(err)
 		panic(err)
 	}
 	defer f.Close()
@@ -72,15 +77,15 @@ func LoadConfig(filename string) {
 	config := new(GateConfig)
 	err = yaml.Unmarshal(buf, config)
 	if nil != err {
-		asynclog.Error(err)
+		Log.Error(err)
 		panic(err)
 	}
 
 	validateGogateConfig(config)
 }
 
-func InitLog(filename string) {
-	log4go.LoadConfiguration(filename)
+func InitLog() {
+	initRotateLog()
 }
 
 func validateGogateConfig(config *GateConfig) error {

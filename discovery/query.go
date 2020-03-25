@@ -1,8 +1,8 @@
 package discovery
 
 import (
-	log "github.com/alecthomas/log4go"
 	"github.com/hashicorp/consul/api"
+	. "github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/utils"
 	"strconv"
 	"strings"
@@ -74,7 +74,7 @@ func QueryConsul() ([]*InstanceInfo, error) {
 		}
 
 		if !isHealth {
-			log.Warn("following instance is not health, skip; service name: %v, service id: %v", servName, servId)
+			Log.Warn("following instance is not health, skip; service name: %v, service id: %v", servName, servId)
 			continue
 		}
 

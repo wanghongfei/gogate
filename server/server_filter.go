@@ -1,13 +1,13 @@
 package server
 
 import (
-	asynclog "github.com/alecthomas/log4go"
+	. "github.com/wanghongfei/gogate/conf"
 )
 
 // 注册过滤器, 追加到末尾
 func (serv *Server) AppendPreFilter(pre *PreFilter) {
 	if serv.isStarted {
-		asynclog.Warn("cannot change filters after server started")
+		Log.Warn("cannot change filters after server started")
 	}
 
 	// asynclog.Info("append pre filter: %s", pre.Name)
@@ -17,10 +17,10 @@ func (serv *Server) AppendPreFilter(pre *PreFilter) {
 // 注册过滤器, 追加到末尾
 func (serv *Server) AppendPostFilter(post *PostFilter) {
 	if serv.isStarted {
-		asynclog.Warn("cannot change filters after server started")
+		Log.Warn("cannot change filters after server started")
 	}
 
-	// asynclog.Info("append post filter: %s", post.Name)
+	// asynceog.Info("append post filter: %s", post.Name)
 	serv.postFilters = append(serv.postFilters, post)
 }
 
@@ -43,7 +43,7 @@ func (serv *Server) ExportAllPostFilters() []*PostFilter {
 // 在指定前置过滤器的后面添加
 func (serv *Server) InsertPreFilterBehind(filterName string, filter *PreFilter) bool {
 	if serv.isStarted {
-		asynclog.Warn("cannot change filters after server started")
+		Log.Warn("cannot change filters after server started")
 	}
 
 	// asynclog.Info("insert pre filter: %s", filter.Name)
@@ -67,7 +67,7 @@ func (serv *Server) InsertPreFilterBehind(filterName string, filter *PreFilter) 
 // filter: 过滤器对象
 func (serv *Server) InsertPostFilterBehind(filterName string, filter *PostFilter) bool {
 	if serv.isStarted {
-		asynclog.Warn("cannot change filters after server started")
+		Log.Warn("cannot change filters after server started")
 	}
 
 	// asynclog.Info("insert post filter: %s", filter.Name)
@@ -88,7 +88,7 @@ func (serv *Server) InsertPostFilterBehind(filterName string, filter *PostFilter
 // 在最头部添加前置过滤器
 func (serv *Server) InsertPreFilterAhead(filter *PreFilter) {
 	if serv.isStarted {
-		asynclog.Warn("cannot change filters after server started")
+		Log.Warn("cannot change filters after server started")
 	}
 
 	// asynclog.Info("insert pre filter: %s", filter.Name)
@@ -103,7 +103,7 @@ func (serv *Server) InsertPreFilterAhead(filter *PreFilter) {
 // 在最头部添加后置过滤器
 func (serv *Server) InsertPostFilterAhead(filter *PostFilter) {
 	if serv.isStarted {
-		asynclog.Warn("cannot change filters after server started")
+		Log.Warn("cannot change filters after server started")
 	}
 
 	// asynclog.Info("insert post filter: %s", filter.Name)

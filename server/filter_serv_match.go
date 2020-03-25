@@ -1,8 +1,8 @@
 package server
 
 import (
-	log "github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
+	. "github.com/wanghongfei/gogate/conf"
 )
 
 func ServiceMatchPreFilter(s *Server, ctx *fasthttp.RequestCtx, newRequest *fasthttp.Request) bool {
@@ -18,7 +18,7 @@ func ServiceMatchPreFilter(s *Server, ctx *fasthttp.RequestCtx, newRequest *fast
 	ctx.SetUserValue(ROUTE_INFO, servInfo)
 	ctx.SetUserValue(SERVICE_NAME, servInfo.Id)
 
-	log.Debug("%s matched to %s", uri, servInfo.Id)
+	Log.Debug("%s matched to %s", uri, servInfo.Id)
 
 	return true
 }

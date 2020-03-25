@@ -11,9 +11,9 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
 	"github.com/wanghongfei/gogate/conf"
+	. "github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
 	"github.com/wanghongfei/gogate/redis"
 	"github.com/wanghongfei/gogate/server/statistics"
@@ -161,7 +161,7 @@ func (serv *Server) Start() error {
 
 	// 初始化服务注册模块
 	if conf.App.EurekaConfig.Enable {
-		log.Info("eureka enabled")
+		Log.Info("eureka enabled")
 		// 初始化eureka
 		err := discovery.InitEurekaClient()
 		if nil != err {
@@ -172,7 +172,7 @@ func (serv *Server) Start() error {
 		discovery.StartRegister()
 
 	} else if conf.App.ConsulConfig.Enable {
-		log.Info("consul enabled")
+		Log.Info("consul enabled")
 		// 初始化consul
 		err := discovery.InitConsulClient()
 		if nil != err {
@@ -190,7 +190,7 @@ func (serv *Server) Start() error {
 	}
 
 	// 启动http server
-	log.Info("start Gogate at %s:%d, pid: %d", serv.host, serv.port, os.Getpid())
+	Log.Infof("start Gogate at %s:%d, pid: %d", serv.host, serv.port, os.Getpid())
 	return serv.fastServ.Serve(listen)
 }
 
@@ -237,10 +237,10 @@ func (serv *Server) waitAllRoutineDone() chan struct{} {
 
 // 更新路由配置文件
 func (serv *Server) ReloadRoute() error {
-	log.Info("start reloading route info")
+	Log.Info("start reloading route info")
 	err := serv.Router.ReloadRoute()
 	serv.rebuildRateLimiter()
-	log.Info("route info reloaded")
+	Log.Info("route info reloaded")
 
 	if nil != err {
 		return utils.Errorf("failed to reload route => %w", err)
@@ -251,7 +251,7 @@ func (serv *Server) ReloadRoute() error {
 
 // 启动定时更新注册表的routine
 func (serv *Server) startRefreshRegistryInfo() error {
-	log.Info("refresh registry every %d sec", REGISTRY_REFRESH_INTERVAL)
+	Log.Infof("refresh registry every %d sec", REGISTRY_REFRESH_INTERVAL)
 
 	refreshRegistryChan := make(chan error)
 
@@ -260,7 +260,7 @@ func (serv *Server) startRefreshRegistryInfo() error {
 		ticker := time.NewTicker(REGISTRY_REFRESH_INTERVAL * time.Second)
 
 		for {
-			log.Info("registry refresh started")
+			Log.Info("registry refresh started")
 			err := serv.refreshRegistry()
 			if nil != err {
 				// 如果是第一次查询失败, 退出程序
@@ -269,11 +269,11 @@ func (serv *Server) startRefreshRegistryInfo() error {
 					return
 
 				} else {
-					log.Error(err)
+					Log.Error(err)
 				}
 
 			}
-			log.Info("done refreshing registry")
+			Log.Info("done refreshing registry")
 
 			if isBootstrap {
 				isBootstrap = false
@@ -289,7 +289,7 @@ func (serv *Server) startRefreshRegistryInfo() error {
 
 func (serv *Server) recordTraffic(servName string, success bool) {
 	if nil != serv.trafficStat {
-		log.Debug("log traffic for %s", servName)
+		Log.Debug("log traffic for %s", servName)
 
 		info := &stat.TraficInfo{
 			ServiceId: servName,
@@ -319,7 +319,7 @@ func (serv *Server) rebuildRateLimiter() {
 		rl := serv.createRateLimiter(info)
 		if nil != rl {
 			serv.rateLimiterMap.Put(info.Id, rl)
-			log.Debug("done building rateLimiter for %s", info.Id)
+			Log.Debug("done building rateLimiter for %s", info.Id)
 		}
 	}
 }
@@ -335,13 +335,13 @@ func (serv *Server) createRateLimiter(info *route.ServiceInfo) throttle.RateLimi
 	client := redis.NewRedisClient(conf.App.RedisConfig.Addr, 5)
 	err := client.Connect()
 	if nil != err {
-		log.Warn("failed to create ratelimiter, err = %v", err)
+		Log.Warn("failed to create ratelimiter, err = %v", err)
 		return nil
 	}
 
 	rl, err := throttle.NewRedisRateLimiter(client, conf.App.RedisConfig.RateLimiterLua, info.Qps, info.Id)
 	if nil != err {
-		log.Warn("failed to create ratelimiter, err = %v", err)
+		Log.Warn("failed to create ratelimiter, err = %v", err)
 		return nil
 	}
 

@@ -3,7 +3,7 @@ package stat
 import (
 	"time"
 
-	asynclog "github.com/alecthomas/log4go"
+	. "github.com/wanghongfei/gogate/conf"
 )
 
 // 流量记录器
@@ -95,7 +95,7 @@ func (ts *TraficStat) traficLogRoutine() {
 		for _, traffic := range servMap {
 			err := ts.store.Send(traffic)
 			if nil != err {
-				asynclog.Error(err)
+				Log.Error(err)
 			}
 		}
 

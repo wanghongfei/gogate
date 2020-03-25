@@ -1,8 +1,8 @@
 package server
 
 import (
-	log "github.com/alecthomas/log4go"
 	"github.com/valyala/fasthttp"
+	. "github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/utils"
 	"strconv"
 )
@@ -34,7 +34,7 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	if path == RELOAD_PATH {
 		err := serv.ReloadRoute()
 		if nil != err {
-			log.Error(err)
+			Log.Error(err)
 			NewResponse(path, err.Error()).Send(ctx)
 			return
 		}
@@ -56,7 +56,7 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	// 发请求
 	resp, logRecordName, err := serv.sendRequest(ctx, newReq)
 	if nil != err {
-		log.Error(err)
+		Log.Error(err)
 		NewResponse(path, err.Error()).Send(ctx)
 
 		serv.recordTraffic(logRecordName, false)
@@ -123,7 +123,7 @@ func processPanic(ctx *fasthttp.RequestCtx, serv *Server) {
 
 func recoverPanic(ctx *fasthttp.RequestCtx, serv *Server) {
 	if r := recover(); r != nil {
-		log.Error(r)
+		Log.Error(r)
 		processPanic(ctx, serv)
 
 		serv.markRoutineDone()

@@ -1,7 +1,7 @@
 package server
 
 import (
-	log "github.com/alecthomas/log4go"
+	. "github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
 	"github.com/wanghongfei/gogate/server/route"
 	"strings"
@@ -92,7 +92,7 @@ func chooseVersion(canaryInfos []*route.CanaryInfo) string {
 
 	index := utils.RandomByWeight(weights)
 	if -1 == index {
-		log.Warn("random interval returned -1")
+		Log.Warn("random interval returned -1")
 		return ""
 	}
 

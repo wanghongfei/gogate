@@ -39,3 +39,9 @@ redis:
   addr: 127.0.0.1:6379
   # 限速器lua代码文件
   rateLimiterLua: lua/rate_limiter.lua
+
+log:
+  console-only: true
+  directory: "logs"
+  file-pattern: "logs/moon.log.%Y-%m-%d"
+  file-link: "logs/moon.log"

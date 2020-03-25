@@ -4,9 +4,9 @@ import (
 	"strconv"
 	"time"
 
-	asynclog "github.com/alecthomas/log4go"
 	"github.com/wanghongfei/go-eureka-client/eureka"
 	"github.com/wanghongfei/gogate/conf"
+	. "github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/utils"
 )
 
@@ -42,7 +42,7 @@ func StartRegister() {
 	instanceId = ip + ":" + strconv.Itoa(conf.App.ServerConfig.Port)
 
 	// 注册
-	asynclog.Info("register to eureka as %s", instanceId)
+	Log.Info("register to eureka as %s", instanceId)
 	gogateApp = eureka.NewInstanceInfo(
 		instanceId,
 		conf.App.ServerConfig.AppName,
@@ -58,7 +58,7 @@ func StartRegister() {
 
 	err = euClient.RegisterInstance(conf.App.ServerConfig.AppName, gogateApp)
 	if nil != err {
-		asynclog.Warn("failed to register to eureka, %v", err)
+		Log.Warn("failed to register to eureka, %v", err)
 	}
 
 	// 心跳
@@ -72,7 +72,7 @@ func StartRegister() {
 				heartbeat()
 
 			case <-tickerCloseChan:
-				asynclog.Info("heartbeat stopped")
+				Log.Info("heartbeat stopped")
 				return
 
 			}
@@ -83,15 +83,15 @@ func StartRegister() {
 func UnRegister() {
 	stopHeartbeat()
 
-	asynclog.Info("unregistering %s", instanceId)
+	Log.Info("unregistering %s", instanceId)
 	err := euClient.UnregisterInstance("gogate", instanceId)
 
 	if nil != err {
-		asynclog.Error(err)
+		Log.Error(err)
 		return
 	}
 
-	asynclog.Info("done unregistration")
+	Log.Info("done unregistration")
 }
 
 func stopHeartbeat() {
@@ -102,10 +102,10 @@ func stopHeartbeat() {
 func heartbeat() {
 	err := euClient.SendHeartbeat(gogateApp.App, instanceId)
 	if nil != err {
-		asynclog.Warn("failed to send heartbeat, %v", err)
+		Log.Warn("failed to send heartbeat, %v", err)
 		return
 	}
 
-	asynclog.Info("heartbeat sent")
+	Log.Info("heartbeat sent")
 }
 
