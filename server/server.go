@@ -159,50 +159,38 @@ func (serv *Server) Start() error {
 		return utils.Errorf("eureka and consul are both enabled")
 	}
 
-	discoveryStartupChan := make(chan error)
-
-	// 注册
-	go func() {
-		// time.Sleep(500 * time.Millisecond)
-
-		if conf.App.EurekaConfig.Enable {
-			log.Info("eureka enabled")
-			// 初始化eureka
-			err := discovery.InitEurekaClient()
-			if nil != err {
-				discoveryStartupChan <- err
-				return
-			}
-
-			// 注册
-			discovery.StartRegister()
-
-		} else if conf.App.ConsulConfig.Enable {
-			log.Info("consul enabled")
-			// 初始化consul
-			err := discovery.InitConsulClient()
-			if nil != err {
-				discoveryStartupChan <- err
-				return
-			}
-
-		} else {
-			discoveryStartupChan <- utils.Errorf("both eureka and consul are disabled")
-			return
+	// 初始化服务注册模块
+	if conf.App.EurekaConfig.Enable {
+		log.Info("eureka enabled")
+		// 初始化eureka
+		err := discovery.InitEurekaClient()
+		if nil != err {
+			return utils.Errorf("%w", err)
 		}
 
-		// 更新本地注册表
-		err := serv.startRefreshRegistryInfo()
-		discoveryStartupChan <- err
-	}()
+		// 注册自己, 启动心跳
+		discovery.StartRegister()
 
-	err = <- discoveryStartupChan
+	} else if conf.App.ConsulConfig.Enable {
+		log.Info("consul enabled")
+		// 初始化consul
+		err := discovery.InitConsulClient()
+		if nil != err {
+			return utils.Errorf("%w", err)
+		}
+
+	} else {
+		return utils.Errorf("both eureka and consul are disabled")
+	}
+
+	// 更新本地注册表
+	err = serv.startRefreshRegistryInfo()
 	if nil != err {
 		return utils.Errorf("failed to start discovery module => %w", err)
 	}
 
 	// 启动http server
-	log.Info("starting gogate at %s:%d, pid: %d", serv.host, serv.port, os.Getpid())
+	log.Info("start Gogate at %s:%d, pid: %d", serv.host, serv.port, os.Getpid())
 	return serv.fastServ.Serve(listen)
 }
 
@@ -272,13 +260,11 @@ func (serv *Server) startRefreshRegistryInfo() error {
 		ticker := time.NewTicker(REGISTRY_REFRESH_INTERVAL * time.Second)
 
 		for {
-			log.Info("refresh registry started")
+			log.Info("registry refresh started")
 			err := serv.refreshRegistry()
 			if nil != err {
 				// 如果是第一次查询失败, 退出程序
 				if isBootstrap {
-					// log.Error("failed to connect to eureka, err = %w", err)
-					// os.Exit(1)
 					refreshRegistryChan <- utils.Errorf("failed to refresh registry => %w", err)
 					return
 
@@ -289,8 +275,10 @@ func (serv *Server) startRefreshRegistryInfo() error {
 			}
 			log.Info("done refreshing registry")
 
-			isBootstrap = false
-			close(refreshRegistryChan)
+			if isBootstrap {
+				isBootstrap = false
+				close(refreshRegistryChan)
+			}
 
 			<-ticker.C
 		}
