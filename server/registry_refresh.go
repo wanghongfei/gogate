@@ -25,13 +25,13 @@ func (serv *Server) refreshRegistry() error {
 		instances, err = discovery.QueryConsul()
 	}
 	if nil != err {
-		return err
+		return utils.Errorf("failed to communicate with discovery service => %w", err)
 	}
 
 	log.Info("total app count: %d", len(instances))
 
 	if nil == instances {
-		log.Error("no service found")
+		log.Info("no service found")
 		return nil
 	}
 

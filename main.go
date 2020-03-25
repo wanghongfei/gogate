@@ -46,6 +46,7 @@ func main() {
 func checkErrorExit(err error, exit bool) {
 	if nil != err {
 		log.Error(err)
+		time.Sleep(time.Second)
 		if exit {
 			os.Exit(1)
 		}

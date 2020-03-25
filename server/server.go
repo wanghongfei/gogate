@@ -1,11 +1,10 @@
 package server
 
 import (
-	"errors"
-	"fmt"
 	"github.com/wanghongfei/gogate/server/lb"
 	"github.com/wanghongfei/gogate/server/route"
 	"github.com/wanghongfei/gogate/server/syncmap"
+	"github.com/wanghongfei/gogate/utils"
 	"net"
 	"os"
 	"strconv"
@@ -78,11 +77,11 @@ const (
  */
 func NewGatewayServer(host string, port int, routePath string, maxConn int, useGracefullyShutdown bool, maxWait time.Duration) (*Server, error) {
 	if "" == host {
-		return nil, fmt.Errorf("invalid host %s", host)
+		return nil, utils.Errorf("invalid host %s", host)
 	}
 
 	if port <= 0 || port > 65535 {
-		return nil, fmt.Errorf("invalid port %d", port)
+		return nil, utils.Errorf("invalid port %d", port)
 	}
 
 	if maxConn <= 0 {
@@ -92,7 +91,7 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int, useG
 	// 创建router
 	router, err := route.NewRouter(routePath)
 	if nil != err {
-		return nil, fmt.Errorf("failed to create router => %w", err)
+		return nil, utils.Errorf("failed to create router => %w", err)
 	}
 
 	// 创建Server对象
@@ -144,7 +143,7 @@ func (serv *Server) Start() error {
 	// 监听端口
 	listen, err := net.Listen("tcp", serv.host + ":" + strconv.Itoa(serv.port))
 	if nil != err {
-		return fmt.Errorf("failed to listen at %s:%d => %w", serv.host, serv.port, err)
+		return utils.Errorf("failed to listen at %s:%d => %w", serv.host, serv.port, err)
 	}
 
 	// 是否启用优雅关闭功能
@@ -157,32 +156,50 @@ func (serv *Server) Start() error {
 
 	bothEnabled := conf.App.EurekaConfig.Enable && conf.App.ConsulConfig.Enable
 	if bothEnabled {
-		return errors.New("eureka and consul are both enabled")
+		return utils.Errorf("eureka and consul are both enabled")
 	}
+
+	discoveryStartupChan := make(chan error)
 
 	// 注册
 	go func() {
-		time.Sleep(500 * time.Millisecond)
+		// time.Sleep(500 * time.Millisecond)
 
 		if conf.App.EurekaConfig.Enable {
 			log.Info("eureka enabled")
 			// 初始化eureka
-			discovery.InitEurekaClient()
+			err := discovery.InitEurekaClient()
+			if nil != err {
+				discoveryStartupChan <- err
+				return
+			}
+
 			// 注册
 			discovery.StartRegister()
 
 		} else if conf.App.ConsulConfig.Enable {
 			log.Info("consul enabled")
 			// 初始化consul
-			discovery.InitConsulClient()
+			err := discovery.InitConsulClient()
+			if nil != err {
+				discoveryStartupChan <- err
+				return
+			}
 
 		} else {
-			panic("no registry center specified")
+			discoveryStartupChan <- utils.Errorf("both eureka and consul are disabled")
+			return
 		}
 
 		// 更新本地注册表
-		serv.startRefreshRegistryInfo()
+		err := serv.startRefreshRegistryInfo()
+		discoveryStartupChan <- err
 	}()
+
+	err = <- discoveryStartupChan
+	if nil != err {
+		return utils.Errorf("failed to start discovery module => %w", err)
+	}
 
 	// 启动http server
 	log.Info("starting gogate at %s:%d, pid: %d", serv.host, serv.port, os.Getpid())
@@ -196,7 +213,7 @@ func (serv *Server) Shutdown() error {
 
 	err := serv.listen.Close()
 	if nil != err {
-		return fmt.Errorf("failed to shutdown server => %w", err)
+		return utils.Errorf("failed to shutdown server => %w", err)
 	}
 
 	return nil
@@ -209,7 +226,7 @@ func (serv *Server) WaitForGracefullyClose() error {
 		return nil
 
 	case <-time.After(serv.maxWait):
-		return fmt.Errorf("force shutdown after %v", serv.maxWait)
+		return utils.Errorf("force shutdown after %v", serv.maxWait)
 	}
 
 }
@@ -238,15 +255,17 @@ func (serv *Server) ReloadRoute() error {
 	log.Info("route info reloaded")
 
 	if nil != err {
-		return fmt.Errorf("failed to reload route => %w", err)
+		return utils.Errorf("failed to reload route => %w", err)
 	}
 
 	return nil
 }
 
 // 启动定时更新注册表的routine
-func (serv *Server) startRefreshRegistryInfo() {
+func (serv *Server) startRefreshRegistryInfo() error {
 	log.Info("refresh registry every %d sec", REGISTRY_REFRESH_INTERVAL)
+
+	refreshRegistryChan := make(chan error)
 
 	isBootstrap := true
 	go func() {
@@ -258,19 +277,26 @@ func (serv *Server) startRefreshRegistryInfo() {
 			if nil != err {
 				// 如果是第一次查询失败, 退出程序
 				if isBootstrap {
-					log.Error("failed to connect to eureka, err = %v, exit", err)
-					os.Exit(1)
+					// log.Error("failed to connect to eureka, err = %w", err)
+					// os.Exit(1)
+					refreshRegistryChan <- utils.Errorf("failed to refresh registry => %w", err)
+					return
+
+				} else {
+					log.Error(err)
 				}
 
-				log.Error(err)
 			}
 			log.Info("done refreshing registry")
 
 			isBootstrap = false
+			close(refreshRegistryChan)
 
 			<-ticker.C
 		}
 	}()
+
+	return <- refreshRegistryChan
 }
 
 func (serv *Server) recordTraffic(servName string, success bool) {

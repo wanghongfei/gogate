@@ -17,13 +17,15 @@ var instanceId = ""
 var ticker *time.Ticker
 var tickerCloseChan chan struct{}
 
-func InitEurekaClient() {
+func InitEurekaClient() error {
 	c, err := eureka.NewClientFromFile(conf.App.EurekaConfig.ConfigFile)
 	if nil != err {
-		panic(err)
+		utils.Errorf("failed to init eureka client => %w", err)
 	}
 
 	euClient = c
+
+	return nil
 }
 
 func StartRegister() {

@@ -1,8 +1,7 @@
 package throttle
 
 import (
-	"errors"
-	"fmt"
+	"github.com/wanghongfei/gogate/utils"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -22,7 +21,7 @@ type RedisRateLimiter struct {
 
 func NewRedisRateLimiter(client *redis.RedisClient, luaPath string, qps int, serviceId string) (*RedisRateLimiter, error) {
 	if nil == client {
-		return nil, errors.New("redis client cannot be nil")
+		return nil, utils.Errorf("redis client cannot be nil")
 	}
 
 	if qps < 1 {
@@ -32,7 +31,7 @@ func NewRedisRateLimiter(client *redis.RedisClient, luaPath string, qps int, ser
 	if !client.IsConnected() {
 		err := client.Connect()
 		if nil != err {
-			return nil, fmt.Errorf("failed to connect to redis => %w", err)
+			return nil, utils.Errorf("failed to connect to redis => %w", err)
 		}
 	}
 

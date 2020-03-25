@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"net"
 )
@@ -20,5 +19,5 @@ func GetFirstNoneLoopIp() (string, error) {
 		}
 	}
 
-	return "", errors.New("no first-none-loop ip found")
+	return "", Errorf("no first-none-loop ip found")
 }

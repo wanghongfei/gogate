@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	log "github.com/alecthomas/log4go"
 	"github.com/wanghongfei/gogate/discovery"
 	"github.com/wanghongfei/gogate/server/route"
@@ -35,7 +34,7 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 		serviceInstances, exist := serv.registryMap.Get(appId)
 		if !exist || 0 == len(serviceInstances) {
 			// return nil, "", errors.New("no instance " + appId + " for service " + appId + ", (service is offline)")
-			return nil, "", fmt.Errorf("no instance %s for service (service is offline)", appId)
+			return nil, "", utils.Errorf("no instance %s for service (service is offline)", appId)
 		}
 
 		// 按version过滤
@@ -62,7 +61,7 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 	resp := new(fasthttp.Response)
 	err := fasthttp.Do(req, resp)
 	if nil != err {
-		return nil, "", fmt.Errorf("failed to send request to downstream service => %w", err)
+		return nil, "", utils.Errorf("failed to send request to downstream service => %w", err)
 	}
 
 	return resp, logRecordName, nil

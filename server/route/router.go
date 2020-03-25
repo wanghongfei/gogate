@@ -1,8 +1,7 @@
 package route
 
 import (
-	"errors"
-	"fmt"
+	"github.com/wanghongfei/gogate/utils"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
@@ -48,7 +47,7 @@ func (info *ServiceInfo) String() string {
 func NewRouter(path string) (*Router, error) {
 	matcher, servInfos, err := loadRoute(path)
 	if nil != err {
-		return nil, fmt.Errorf("failed to load route info => %e", err)
+		return nil, utils.Errorf("failed to load route info => %e", err)
 	}
 
 
@@ -65,7 +64,7 @@ func NewRouter(path string) (*Router, error) {
 func (r *Router) ReloadRoute() error {
 	matcher, servInfos, err := loadRoute(r.cfgPath)
 	if nil != err {
-		return fmt.Errorf("failed to load route info => %e", err)
+		return utils.Errorf("failed to load route info => %e", err)
 	}
 
 	r.ServInfos = servInfos
@@ -89,7 +88,7 @@ func loadRoute(path string) (*PathMatcher, []*ServiceInfo, error) {
 	// 打开配置文件
 	routeFile, err := os.Open(path)
 	if nil != err {
-		return nil, nil, fmt.Errorf("failed to open file => %w", err)
+		return nil, nil, utils.Errorf("failed to open file => %w", err)
 	}
 	defer routeFile.Close()
 
@@ -118,7 +117,7 @@ func loadRoute(path string) (*PathMatcher, []*ServiceInfo, error) {
 		// 验证
 		err = validateServiceInfo(info)
 		if nil != err {
-			return nil, nil, fmt.Errorf("invalid config for %s => %w", name, err)
+			return nil, nil, utils.Errorf("invalid config for %s => %w", name, err)
 		}
 
 		tree.PutString(info.Prefix, info)
@@ -137,15 +136,15 @@ func loadRoute(path string) (*PathMatcher, []*ServiceInfo, error) {
 
 func validateServiceInfo(info *ServiceInfo) error {
 	if nil == info {
-		return errors.New("info is empty")
+		return utils.Errorf("info is empty")
 	}
 
 	if "" == info.Id && "" == info.Host {
-		return errors.New("id and host are both empty")
+		return utils.Errorf("id and host are both empty")
 	}
 
 	if "" == info.Prefix {
-		return errors.New("path is empty")
+		return utils.Errorf("path is empty")
 	}
 
 	return nil
