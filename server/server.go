@@ -8,7 +8,6 @@ import (
 	"net"
 	"os"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/valyala/fasthttp"
@@ -27,13 +26,13 @@ type Server struct {
 	// 负载均衡组件
 	lb						lb.LoadBalancer
 
-	// 保存listener引用, 用于关闭server
-	listen 					net.Listener
-	// 是否启用优雅关闭
-	graceShutdown 			bool
-	// 优雅关闭最大等待时间
-	maxWait 				time.Duration
-	wg      				*sync.WaitGroup
+	//// 保存listener引用, 用于关闭server
+	//listen 					net.Listener
+	//// 是否启用优雅关闭
+	//graceShutdown 			bool
+	//// 优雅关闭最大等待时间
+	//maxWait 				time.Duration
+	//wg      				*sync.WaitGroup
 
 	// URI路由组件
 	Router 					*route.Router
@@ -77,7 +76,7 @@ const (
 *	- maxConn: 最大连接数, 0表示使用默认值
 *
  */
-func NewGatewayServer(host string, port int, routePath string, maxConn int, useGracefullyShutdown bool, maxWait time.Duration) (*Server, error) {
+func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Server, error) {
 	if "" == host {
 		return nil, utils.Errorf("invalid host %s", host)
 	}
@@ -108,8 +107,8 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int, useG
 		preFilters:  make([]*PreFilter, 0, 3),
 		postFilters: make([]*PostFilter, 0, 3),
 
-		graceShutdown: useGracefullyShutdown,
-		maxWait:       maxWait,
+		//graceShutdown: useGracefullyShutdown,
+		//maxWait:       maxWait,
 	}
 
 	// 创建FastServer对象
@@ -149,12 +148,12 @@ func (serv *Server) Start() error {
 	}
 
 	// 是否启用优雅关闭功能
-	if serv.graceShutdown {
-		serv.wg = new(sync.WaitGroup)
-	}
+	//if serv.graceShutdown {
+	//	serv.wg = new(sync.WaitGroup)
+	//}
 
 	// 保存Listener指针
-	serv.listen = listen
+	//serv.listen = listen
 
 	bothEnabled := conf.App.EurekaConfig.Enable && conf.App.ConsulConfig.Enable
 	if bothEnabled {
@@ -200,40 +199,12 @@ func (serv *Server) Shutdown() error {
 	serv.isStarted = false
 	serv.discoveryClient.UnRegister()
 
-	err := serv.listen.Close()
+	err := serv.fastServ.Shutdown()
 	if nil != err {
 		return utils.Errorf("failed to shutdown server => %w", err)
 	}
 
 	return nil
-}
-
-// 需要在Shutdown()之后调用, 此方法会一直block直到所有连接关闭或者超时
-func (serv *Server) WaitForGracefullyClose() error {
-	select {
-	case <-serv.waitAllRoutineDone():
-		return nil
-
-	case <-time.After(serv.maxWait):
-		return utils.Errorf("force shutdown after %v", serv.maxWait)
-	}
-
-}
-
-// 等待所有请求处理routine完成;
-// 此方法返回无缓冲channel, 只有当所有routine结束时channel会关闭
-func (serv *Server) waitAllRoutineDone() chan struct{} {
-	flagChan := make(chan struct{})
-
-	go func() {
-		if nil != serv.wg {
-			serv.wg.Wait()
-		}
-
-		close(flagChan)
-	}()
-
-	return flagChan
 }
 
 // 更新路由配置文件

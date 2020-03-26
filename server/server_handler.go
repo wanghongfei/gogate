@@ -22,7 +22,6 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	// 计时器
 	sw := utils.NewStopwatch()
 
-	serv.markRoutineStart()
 
 	// 取出请求path
 	path := string(ctx.Path())
@@ -75,7 +74,7 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	resp.Header.Add("Time", strconv.FormatInt(timeCost, 10))
 	resp.Header.Set("Server", "gogate")
 
-	Log.Infof("request %s finished, ms = %v, response = %s", path, timeCost, resp.Body())
+	Log.Infof("request %s finished, time = %vms, response = %s", path, timeCost, resp.Body())
 
 	// 返回响应
 	sendResponse(ctx, resp)
@@ -125,20 +124,6 @@ func recoverPanic(ctx *fasthttp.RequestCtx, serv *Server) {
 	if r := recover(); r != nil {
 		Log.Errorf("panic: %v", r)
 		processPanic(ctx, serv)
-
-		serv.markRoutineDone()
 	}
 }
 
-func (serv *Server) markRoutineStart() {
-	if nil != serv.wg {
-		serv.wg.Add(1)
-	}
-}
-
-func (serv *Server) markRoutineDone() {
-	if nil != serv.wg {
-		serv.wg.Done()
-	}
-
-}
