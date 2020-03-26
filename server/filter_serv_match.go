@@ -18,7 +18,7 @@ func ServiceMatchPreFilter(s *Server, ctx *fasthttp.RequestCtx, newRequest *fast
 	ctx.SetUserValue(ROUTE_INFO, servInfo)
 	ctx.SetUserValue(SERVICE_NAME, servInfo.Id)
 
-	Log.Debugf("%s matched to %s", uri, servInfo.Id)
+	Log.Infof("%s matched to %s", uri, servInfo.Id)
 
 	return true
 }

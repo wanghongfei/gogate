@@ -38,8 +38,6 @@ func main() {
 	// 等待优雅关闭
 	err = server.WaitForGracefullyClose()
 	checkErrorExit(err, false)
-	time.Sleep(500 * time.Millisecond)
-
 }
 
 func checkErrorExit(err error, exit bool) {

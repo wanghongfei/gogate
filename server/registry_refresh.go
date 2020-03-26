@@ -2,7 +2,6 @@ package server
 
 import (
 	"github.com/wanghongfei/go-eureka-client/eureka"
-	"github.com/wanghongfei/gogate/conf"
 	. "github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
 	"github.com/wanghongfei/gogate/server/syncmap"
@@ -15,47 +14,26 @@ const META_VERSION = "version"
 
 // 向eureka查询注册列表, 刷新本地列表
 func (serv *Server) refreshRegistry() error {
-	var instances []*discovery.InstanceInfo
-	var err error
+	instances, err := serv.discoveryClient.QueryServices()
 
-	if conf.App.EurekaConfig.Enable {
-		instances, err = discovery.QueryEureka()
-
-	} else if conf.App.ConsulConfig.Enable {
-		instances, err = discovery.QueryConsul()
-	}
 	if nil != err {
-		return utils.Errorf("failed to communicate with discovery service => %w", err)
+		return utils.Errorf("failed to refresh registry => %w", err)
+	}
+
+	if nil == instances {
+		Log.Info("no instance found")
+		return nil
 	}
 
 	Log.Infof("total app count: %d", len(instances))
 
-	if nil == instances {
-		Log.Info("no service found")
-		return nil
-	}
-
 	newRegistryMap := groupByService(instances)
-	// log.Info("refreshing registry")
 
 	refreshRegistryMap(serv, newRegistryMap)
-	// log.Info("refreshing clients")
 
 	return nil
 }
 
-func createInstanceInfos(hosts []string) []*discovery.InstanceInfo {
-	hostNum := len(hosts)
-
-	infos := make([]*discovery.InstanceInfo, 0, hostNum)
-	for _, host := range hosts {
-		infos = append(infos, &discovery.InstanceInfo{
-			Addr: host,
-		})
-	}
-
-	return infos
-}
 
 // 将所有实例按服务名进行分组
 func groupByService(instances []*discovery.InstanceInfo) *sync.Map {

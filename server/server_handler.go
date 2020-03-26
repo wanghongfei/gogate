@@ -75,7 +75,7 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	resp.Header.Add("Time", strconv.FormatInt(timeCost, 10))
 	resp.Header.Set("Server", "gogate")
 
-	// log.Info("request finished, ms = %v", timeCost)
+	Log.Infof("request %s finished, ms = %v, response = %s", path, timeCost, resp.Body())
 
 	// 返回响应
 	sendResponse(ctx, resp)

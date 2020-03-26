@@ -52,6 +52,8 @@ type Server struct {
 	// val: []*InstanceInfo
 	registryMap 			*syncmap.InsInfoArrSyncMap
 
+	discoveryClient			discovery.Client
+
 	// 服务id(string) -> 此服务的限速器对象(*MemoryRateLimiter)
 	rateLimiterMap 			*syncmap.RateLimiterSyncMap
 
@@ -162,19 +164,18 @@ func (serv *Server) Start() error {
 	// 初始化服务注册模块
 	if conf.App.EurekaConfig.Enable {
 		Log.Info("eureka enabled")
-		// 初始化eureka
-		err := discovery.InitEurekaClient()
+		serv.discoveryClient, err = discovery.NewEurekaClient(conf.App.EurekaConfig.ConfigFile)
 		if nil != err {
 			return utils.Errorf("%w", err)
 		}
 
 		// 注册自己, 启动心跳
-		discovery.StartRegister()
+		// discovery.StartRegister()
 
 	} else if conf.App.ConsulConfig.Enable {
 		Log.Info("consul enabled")
 		// 初始化consul
-		err := discovery.InitConsulClient()
+		serv.discoveryClient, err = discovery.NewConsulClient()
 		if nil != err {
 			return utils.Errorf("%w", err)
 		}
@@ -197,7 +198,7 @@ func (serv *Server) Start() error {
 // 关闭server
 func (serv *Server) Shutdown() error {
 	serv.isStarted = false
-	discovery.UnRegister()
+	serv.discoveryClient.UnRegister()
 
 	err := serv.listen.Close()
 	if nil != err {
