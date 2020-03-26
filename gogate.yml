@@ -43,5 +43,5 @@ redis:
 log:
   console-only: true
   directory: "logs"
-  file-pattern: "logs/moon.log.%Y-%m-%d"
-  file-link: "logs/moon.log"
+  file-pattern: "logs/gogate.log.%Y-%m-%d"
+  file-link: "logs/gogate.log"

@@ -171,6 +171,11 @@ services:
     prefix: /img
     strip-prefix: false
 
+  log:
+    console-only: true
+    directory: "logs"
+    file-pattern: "logs/gogate.log.%Y-%m-%d"
+    file-link: "logs/gogate.log"
 ```
 
 

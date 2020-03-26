@@ -319,7 +319,7 @@ func (serv *Server) rebuildRateLimiter() {
 		rl := serv.createRateLimiter(info)
 		if nil != rl {
 			serv.rateLimiterMap.Put(info.Id, rl)
-			Log.Debug("done building rateLimiter for %s", info.Id)
+			Log.Debugf("done building rateLimiter for %s", info.Id)
 		}
 	}
 }

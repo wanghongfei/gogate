@@ -1,6 +1,6 @@
 module github.com/wanghongfei/gogate
 
-go 1.12
+go 1.13
 
 replace golang.org/x/net => github.com/golang/net v0.0.0-20190404232315-eb5bcb51f2a3
 
@@ -21,7 +21,7 @@ require (
 	github.com/lestrrat-go/strftime v1.0.1 // indirect
 	github.com/mediocregopher/radix.v2 v0.0.0-20181115013041-b67df6e626f9
 	github.com/tebeka/strftime v0.1.3 // indirect
-	github.com/valyala/fasthttp v1.4.0
+	github.com/valyala/fasthttp v1.9.0
 	github.com/wanghongfei/go-eureka-client v1.1.0
 	gopkg.in/yaml.v2 v2.2.2
 )
