@@ -1,22 +1,19 @@
 package server
 
 import (
-	"github.com/wanghongfei/gogate/server/lb"
-	"github.com/wanghongfei/gogate/server/route"
-	"github.com/wanghongfei/gogate/server/syncmap"
-	"github.com/wanghongfei/gogate/utils"
-	"net"
-	"os"
-	"strconv"
-	"time"
-
 	"github.com/valyala/fasthttp"
 	"github.com/wanghongfei/gogate/conf"
 	. "github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
 	"github.com/wanghongfei/gogate/redis"
+	"github.com/wanghongfei/gogate/server/lb"
+	"github.com/wanghongfei/gogate/server/route"
 	"github.com/wanghongfei/gogate/server/statistics"
 	"github.com/wanghongfei/gogate/throttle"
+	"github.com/wanghongfei/gogate/utils"
+	"net"
+	"os"
+	"strconv"
 )
 
 type Server struct {
@@ -46,15 +43,10 @@ type Server struct {
 
 	isStarted 				bool
 
-	// 保存服务地址
-	// key: 服务名:版本号, 版本号为eureka注册信息中的metadata[version]值
-	// val: []*InstanceInfo
-	registryMap 			*syncmap.InsInfoArrSyncMap
-
 	discoveryClient			discovery.Client
 
 	// 服务id(string) -> 此服务的限速器对象(*MemoryRateLimiter)
-	rateLimiterMap 			*syncmap.RateLimiterSyncMap
+	rateLimiterMap 			*RateLimiterSyncMap
 
 	trafficStat 			*stat.TraficStat
 }
@@ -62,8 +54,6 @@ type Server struct {
 const (
 	// 默认最大连接数
 	MAX_CONNECTION = 5000
-	// 注册信息更新间隔, 秒
-	REGISTRY_REFRESH_INTERVAL = 30
 )
 
 /*
@@ -183,8 +173,8 @@ func (serv *Server) Start() error {
 		return utils.Errorf("both eureka and consul are disabled")
 	}
 
-	// 更新本地注册表
-	err = serv.startRefreshRegistryInfo()
+	// 启动注册表定时更新
+	err = serv.discoveryClient.StartPeriodicalRefresh()
 	if nil != err {
 		return utils.Errorf("failed to start discovery module => %w", err)
 	}
@@ -221,44 +211,6 @@ func (serv *Server) ReloadRoute() error {
 	return nil
 }
 
-// 启动定时更新注册表的routine
-func (serv *Server) startRefreshRegistryInfo() error {
-	Log.Infof("refresh registry every %d sec", REGISTRY_REFRESH_INTERVAL)
-
-	refreshRegistryChan := make(chan error)
-
-	isBootstrap := true
-	go func() {
-		ticker := time.NewTicker(REGISTRY_REFRESH_INTERVAL * time.Second)
-
-		for {
-			Log.Info("registry refresh started")
-			err := serv.refreshRegistry()
-			if nil != err {
-				// 如果是第一次查询失败, 退出程序
-				if isBootstrap {
-					refreshRegistryChan <- utils.Errorf("failed to refresh registry => %w", err)
-					return
-
-				} else {
-					Log.Error(err)
-				}
-
-			}
-			Log.Info("done refreshing registry")
-
-			if isBootstrap {
-				isBootstrap = false
-				close(refreshRegistryChan)
-			}
-
-			<-ticker.C
-		}
-	}()
-
-	return <- refreshRegistryChan
-}
-
 func (serv *Server) recordTraffic(servName string, success bool) {
 	if nil != serv.trafficStat {
 		Log.Debug("log traffic for %s", servName)
@@ -280,7 +232,7 @@ func (serv *Server) recordTraffic(servName string, success bool) {
 // 给路由表中的每个服务重新创建限速器;
 // 在更新过route.yml配置文件时调用
 func (serv *Server) rebuildRateLimiter() {
-	serv.rateLimiterMap = syncmap.NewRateLimiterSyncMap()
+	serv.rateLimiterMap = NewRateLimiterSyncMap()
 
 	// 创建每个服务的限速器
 	for _, info := range serv.Router.ServInfos {

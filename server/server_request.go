@@ -10,6 +10,8 @@ import (
 	"github.com/wanghongfei/gogate/utils"
 )
 
+const META_VERSION = "version"
+
 // 转发请求到指定微服务
 // return:
 // Response: 响应对象;
@@ -31,8 +33,8 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 		version := chooseVersion(info.Canary)
 
 		// 取出指定服务的所有实例
-		serviceInstances, exist := serv.registryMap.Get(appId)
-		if !exist || 0 == len(serviceInstances) {
+		serviceInstances := serv.discoveryClient.Get(appId)
+		if nil == serviceInstances {
 			return nil, "", utils.Errorf("no instance %s for service (service is offline)", appId)
 		}
 

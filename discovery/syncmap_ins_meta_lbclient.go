@@ -1,4 +1,4 @@
-package syncmap
+package discovery
 
 import (
 	"sync"

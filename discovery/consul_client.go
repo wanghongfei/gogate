@@ -11,6 +11,11 @@ import (
 
 type ConsulClient struct {
 	client *api.Client
+
+	// 保存服务地址
+	// key: 服务名:版本号, 版本号为eureka注册信息中的metadata[version]值
+	// val: []*InstanceInfo
+	registryMap 			*InsInfoArrSyncMap
 }
 
 
@@ -25,6 +30,27 @@ func NewConsulClient() (Client, error) {
 	}
 
 	return &ConsulClient{client:c}, nil
+}
+
+func (c *ConsulClient) GetInternalRegistryStore() *InsInfoArrSyncMap {
+	return c.registryMap
+}
+
+func (c *ConsulClient) SetInternalRegistryStore(registry *InsInfoArrSyncMap) {
+	c.registryMap = registry
+}
+
+func (c *ConsulClient) Get(serviceId string) []*InstanceInfo {
+	instance, exist := c.registryMap.Get(serviceId)
+	if !exist {
+		return nil
+	}
+
+	return instance
+}
+
+func (c *ConsulClient) StartPeriodicalRefresh() error {
+	return startPeriodicalRefresh(c)
 }
 
 func (c *ConsulClient) QueryServices() ([]*InstanceInfo, error) {

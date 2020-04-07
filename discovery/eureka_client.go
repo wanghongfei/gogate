@@ -19,6 +19,11 @@ var tickerCloseChan chan struct{}
 
 type EurekaClient struct {
 	client *eureka.Client
+
+	// 保存服务地址
+	// key: 服务名:版本号, 版本号为eureka注册信息中的metadata[version]值
+	// val: []*InstanceInfo
+	registryMap 			*InsInfoArrSyncMap
 }
 
 func NewEurekaClient(confFile string) (Client, error) {
@@ -29,6 +34,24 @@ func NewEurekaClient(confFile string) (Client, error) {
 
 	return &EurekaClient{client:c}, nil
 }
+
+func (c *EurekaClient) Get(serviceId string) []*InstanceInfo {
+	instance, exist := c.registryMap.Get(serviceId)
+	if !exist {
+		return nil
+	}
+
+	return instance
+}
+
+func (c *EurekaClient) GetInternalRegistryStore() *InsInfoArrSyncMap {
+	return c.registryMap
+}
+
+func (c *EurekaClient) SetInternalRegistryStore(registry *InsInfoArrSyncMap) {
+	c.registryMap = registry
+}
+
 
 // 查询所有服务
 func (c *EurekaClient) QueryServices() ([]*InstanceInfo, error) {
@@ -131,6 +154,12 @@ func (c *EurekaClient) UnRegister() error {
 
 	Log.Info("done unregistration")
 	return nil
+}
+
+
+// 向eureka查询注册列表, 刷新本地列表
+func (c *EurekaClient) StartPeriodicalRefresh() error {
+	return startPeriodicalRefresh(c)
 }
 
 func (c *EurekaClient) stopHeartbeat() {
