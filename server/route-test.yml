@@ -1,0 +1,16 @@
+services:
+  service1:
+    host: localhost:8080
+    name: service1
+    prefix: /service1
+    strip-prefix: true
+  service2:
+    host: localhost:8081
+    name: service2
+    prefix: /service2
+    strip-prefix: true
+  service3:
+    host: localhost:8082
+    name: service3
+    prefix: /service3
+    strip-prefix: true

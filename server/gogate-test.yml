@@ -1,0 +1,48 @@
+version: 1.0
+
+server:
+  # 向eureka注册自己时使用的服务名
+  appName: gogate
+  host: 0.0.0.0
+  port: 8001
+  # gateway最大连接数
+  maxConnection: 2000
+  # gateway请求后端服务超时时间, 毫秒
+  timeout: 3000
+
+# 如果eureka, consul都没有启动, 则进入静态模式, 不访问注册中心
+eureka:
+  enable: false
+  # eureka配置文件名
+  configFile: eureka.json
+  # 路由配置文件名
+  routeFile: route.yml
+  # eureka剔除服务的最大时间限值, 秒
+  evictionDuration: 30
+  # 心跳间隔, 秒
+  heartbeatInterval: 20
+
+consul:
+  enable: false
+  address: 127.0.0.1:8500
+
+
+traffic:
+  # 是否开启流量记录功能
+  enableTrafficRecord: false
+  # 流量日志文件所在目录
+  trafficLogDir: /tmp
+
+redis:
+  # 是否使用redis做限速器
+  enabled: false
+  # 目前只支持单实例, 不支持cluster
+  addr: 127.0.0.1:6379
+  # 限速器lua代码文件
+  rateLimiterLua: lua/rate_limiter.lua
+
+log:
+  console-only: true
+  directory: "/tmp/logs"
+  file-pattern: "/tmp/logs/gogate.log.%Y-%m-%d"
+  file-link: "/tmp/logs/gogate.log"

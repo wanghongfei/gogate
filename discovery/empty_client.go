@@ -15,7 +15,7 @@ func (e EmptyClient) Register() error {
 }
 
 func (e EmptyClient) UnRegister() error {
-	panic("implement me")
+	return nil
 }
 
 func (e EmptyClient) Get(string) []*InstanceInfo {
