@@ -1,9 +1,9 @@
 package server
 
 import (
-	"fmt"
 	. "github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
+	"github.com/wanghongfei/gogate/perr"
 	"github.com/wanghongfei/gogate/server/route"
 	"strings"
 
@@ -26,7 +26,7 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 	// 需要从注册列表中查询地址
 	if info.Id != "" {
 		if serv.IsInStaticMode() {
-			return nil, "", fmt.Errorf("no static address found for this service")
+			return nil, "", perr.BizErrorf("no static address found for this service")
 		}
 
 		logRecordName = info.Id
@@ -40,7 +40,7 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 		// 取出指定服务的所有实例
 		serviceInstances := serv.discoveryClient.Get(appId)
 		if nil == serviceInstances {
-			return nil, "", fmt.Errorf("no instance %s for service (service is offline)", appId)
+			return nil, "", perr.BizErrorf("no instance %s for service (service is offline)", appId)
 		}
 
 		// 按version过滤
@@ -48,7 +48,7 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 			serviceInstances = filterWithVersion(serviceInstances, version)
 			if 0 == len(serviceInstances) {
 				// 此version下没有实例
-				return nil, "", fmt.Errorf("no instance %s:%s for service", appId, version)
+				return nil, "", perr.BizErrorf("no instance %s:%s for service", appId, version)
 			}
 		}
 
@@ -71,7 +71,7 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 	resp := new(fasthttp.Response)
 	err := fasthttp.Do(req, resp)
 	if nil != err {
-		return nil, "", fmt.Errorf("failed to send request to downstream service => %w", err)
+		return nil, "", perr.SystemErrorf("failed to send request to downstream service => %v", err)
 	}
 
 	return resp, logRecordName, nil

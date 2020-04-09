@@ -19,5 +19,5 @@ func GetFirstNoneLoopIp() (string, error) {
 		}
 	}
 
-	return "", Errorf("no first-none-loop ip found")
+	return "", fmt.Errorf("no first-none-loop ip found")
 }

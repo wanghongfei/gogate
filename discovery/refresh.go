@@ -2,6 +2,7 @@ package discovery
 
 import (
 	. "github.com/wanghongfei/gogate/conf"
+	"github.com/wanghongfei/gogate/perr"
 	"github.com/wanghongfei/gogate/utils"
 	"sync"
 	"time"
@@ -24,7 +25,7 @@ func startPeriodicalRefresh(c Client) error {
 			if nil != err {
 				// 如果是第一次查询失败, 退出程序
 				if isBootstrap {
-					refreshRegistryChan <- utils.Errorf("failed to refresh registry => %w", err)
+					refreshRegistryChan <- perr.SystemErrorf("failed to refresh registry => %w", err)
 					return
 
 				} else {
@@ -50,7 +51,7 @@ func doRefresh(c Client) error {
 	instances, err := c.QueryServices()
 
 	if nil != err {
-		return utils.Errorf("failed to refresh registry => %w", err)
+		return perr.SystemErrorf("failed to refresh registry => %w", err)
 	}
 
 	if nil == instances {

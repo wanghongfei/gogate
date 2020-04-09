@@ -12,7 +12,7 @@ server:
 
 # 如果eureka, consul都没有启动, 则进入静态模式, 不访问注册中心
 eureka:
-  enable: false
+  enable: true
   # eureka配置文件名
   configFile: eureka.json
   # 路由配置文件名

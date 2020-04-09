@@ -5,12 +5,12 @@ import (
 	"github.com/wanghongfei/gogate/conf"
 	. "github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/discovery"
+	"github.com/wanghongfei/gogate/perr"
 	"github.com/wanghongfei/gogate/redis"
 	"github.com/wanghongfei/gogate/server/lb"
 	"github.com/wanghongfei/gogate/server/route"
 	"github.com/wanghongfei/gogate/server/statistics"
 	"github.com/wanghongfei/gogate/throttle"
-	"github.com/wanghongfei/gogate/utils"
 	"net"
 	"os"
 	"strconv"
@@ -68,11 +68,11 @@ const (
  */
 func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Server, error) {
 	if "" == host {
-		return nil, utils.Errorf("invalid host %s", host)
+		return nil, perr.SystemErrorf("invalid host %s", host)
 	}
 
 	if port <= 0 || port > 65535 {
-		return nil, utils.Errorf("invalid port %d", port)
+		return nil, perr.SystemErrorf("invalid port %d", port)
 	}
 
 	if maxConn <= 0 {
@@ -82,7 +82,7 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 	// 创建router
 	router, err := route.NewRouter(routePath)
 	if nil != err {
-		return nil, utils.Errorf("failed to create router => %w", err)
+		return nil, perr.SystemErrorf("failed to create router => %w", err)
 	}
 
 	// 创建Server对象
@@ -134,7 +134,7 @@ func (serv *Server) Start() error {
 	// 监听端口
 	listen, err := net.Listen("tcp", serv.host + ":" + strconv.Itoa(serv.port))
 	if nil != err {
-		return utils.Errorf("failed to listen at %s:%d => %w", serv.host, serv.port, err)
+		return perr.SystemErrorf("failed to listen at %s:%d => %w", serv.host, serv.port, err)
 	}
 
 	// 是否启用优雅关闭功能
@@ -147,7 +147,7 @@ func (serv *Server) Start() error {
 
 	bothEnabled := conf.App.EurekaConfig.Enable && conf.App.ConsulConfig.Enable
 	if bothEnabled {
-		return utils.Errorf("eureka and consul are both enabled")
+		return perr.SystemErrorf("eureka and consul are both enabled")
 	}
 
 	// 初始化服务注册模块
@@ -155,7 +155,7 @@ func (serv *Server) Start() error {
 		Log.Info("eureka enabled")
 		serv.discoveryClient, err = discovery.NewEurekaClient(conf.App.EurekaConfig.ConfigFile)
 		if nil != err {
-			return utils.Errorf("%w", err)
+			return perr.SystemErrorf("%w", err)
 		}
 
 		// 注册自己, 启动心跳
@@ -166,7 +166,7 @@ func (serv *Server) Start() error {
 		// 初始化consul
 		serv.discoveryClient, err = discovery.NewConsulClient()
 		if nil != err {
-			return utils.Errorf("%w", err)
+			return perr.SystemErrorf("%w", err)
 		}
 
 	} else {
@@ -177,7 +177,7 @@ func (serv *Server) Start() error {
 	// 启动注册表定时更新
 	err = serv.discoveryClient.StartPeriodicalRefresh()
 	if nil != err {
-		return utils.Errorf("failed to start discovery module => %w", err)
+		return perr.SystemErrorf("failed to start discovery module => %w", err)
 	}
 
 	// 启动http server
@@ -192,7 +192,7 @@ func (serv *Server) Shutdown() error {
 
 	err := serv.fastServ.Shutdown()
 	if nil != err {
-		return utils.Errorf("failed to shutdown server => %w", err)
+		return perr.SystemErrorf("failed to shutdown server => %w", err)
 	}
 
 	return nil
@@ -206,7 +206,7 @@ func (serv *Server) ReloadRoute() error {
 	Log.Info("route info reloaded")
 
 	if nil != err {
-		return utils.Errorf("failed to reload route => %w", err)
+		return perr.SystemErrorf("failed to reload route => %w", err)
 	}
 
 	return nil

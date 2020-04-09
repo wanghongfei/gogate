@@ -1,8 +1,10 @@
 package server
 
 import (
+	"errors"
 	"github.com/valyala/fasthttp"
 	. "github.com/wanghongfei/gogate/conf"
+	"github.com/wanghongfei/gogate/perr"
 	"github.com/wanghongfei/gogate/utils"
 	"strconv"
 )
@@ -54,9 +56,27 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 
 	// 发请求
 	resp, logRecordName, err := serv.sendRequest(ctx, newReq)
+	// 错误处理
 	if nil != err {
-		Log.Error(err)
-		NewResponse(path, err.Error()).Send(ctx)
+		// 解析错误类型
+		bizErr, sysErr, _ := perr.ParseError(err)
+		var responseMessage string
+		if nil != bizErr {
+			// 业务错误
+			responseMessage = bizErr.Msg
+			Log.Error(bizErr.ErrorWithEnv())
+
+		} else if nil != sysErr {
+			// 系统错误
+			responseMessage = "system error"
+			Log.Error(sysErr.ErrorWithEnv())
+
+		} else {
+			responseMessage = err.Error()
+			Log.Error(err)
+		}
+
+		NewResponse(path, responseMessage).Send(ctx)
 
 		serv.recordTraffic(logRecordName, false)
 		return
@@ -79,6 +99,22 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	// 返回响应
 	sendResponse(ctx, resp)
 
+}
+
+func convertErrorMessage(err error) string {
+	// 是否为系统错误
+	var sysErr *perr.SystemError
+	if errors.As(err, &sysErr) {
+		return "system error"
+	}
+
+	// 是业务错误
+	var bizErr *perr.BizError
+	if errors.As(err, &bizErr) {
+		return bizErr.Msg
+	}
+
+	return err.Error()
 }
 
 func sendResponse(ctx *fasthttp.RequestCtx, resp *fasthttp.Response) {

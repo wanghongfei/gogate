@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/consul/api"
 	"github.com/wanghongfei/gogate/conf"
 	. "github.com/wanghongfei/gogate/conf"
-	"github.com/wanghongfei/gogate/utils"
+	"github.com/wanghongfei/gogate/perr"
 	"strconv"
 	"strings"
 )
@@ -26,7 +26,7 @@ func NewConsulClient() (Client, error) {
 
 	c, err := api.NewClient(cfg)
 	if nil != err {
-		return nil, utils.Errorf("failed to init consule client => %w", err)
+		return nil, perr.SystemErrorf("failed to init consule client => %w", err)
 	}
 
 	return &ConsulClient{client:c}, nil
@@ -62,7 +62,7 @@ func (c *ConsulClient) QueryServices() ([]*InstanceInfo, error) {
 	// 查出所有健康实例
 	healthList, _, err := c.client.Health().State("passing", &api.QueryOptions{})
 	if nil != err {
-		return nil, utils.Errorf("failed to query consul => %w", err)
+		return nil, perr.SystemErrorf("failed to query consul => %w", err)
 	}
 
 	instances := make([]*InstanceInfo, 0, 10)
@@ -98,9 +98,9 @@ func (c *ConsulClient) QueryServices() ([]*InstanceInfo, error) {
 }
 
 func (c *ConsulClient) Register() error {
-	return utils.Errorf("not implement yet")
+	return perr.SystemErrorf("not implement yet")
 }
 
 func (c *ConsulClient) UnRegister() error {
-	return utils.Errorf("not implement yet")
+	return perr.SystemErrorf("not implement yet")
 }

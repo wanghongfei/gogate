@@ -2,7 +2,7 @@ package redis
 
 import (
 	"github.com/mediocregopher/radix.v2/pool"
-	"github.com/wanghongfei/gogate/utils"
+	"github.com/wanghongfei/gogate/perr"
 )
 
 // Redis Client, 只能连接一个redis实例, 有连接池
@@ -28,7 +28,7 @@ func NewRedisClient(addr string, poolSize int) *RedisClient {
 func (crd *RedisClient) GetString(key string) (string, error) {
 	resp := crd.connPool.Cmd("get", key)
 	if nil != resp.Err {
-		return "", utils.Errorf("failed to GetString => %w", resp.Err)
+		return "", perr.SystemErrorf("failed to GetString => %w", resp.Err)
 	}
 
 	return resp.Str()
@@ -55,7 +55,7 @@ func (crd *RedisClient) IsConnected() bool {
 func (crd *RedisClient) Connect() error {
 	conn, err := pool.New("tcp", crd.addr, crd.poolSize)
 	if err != nil {
-		return utils.Errorf("failed to connect to redis => %w", err)
+		return perr.SystemErrorf("failed to connect to redis => %w", err)
 	}
 
 	crd.connPool = conn

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"github.com/wanghongfei/gogate/perr"
 	"sync"
 )
 
@@ -14,7 +15,7 @@ import (
 */
 func DelKeys(baseMap *sync.Map, keys []interface{}) error {
 	if nil == baseMap {
-		return Errorf("baseMap cannot be null")
+		return perr.SystemErrorf("baseMap cannot be null")
 	}
 
 	for _, key := range keys {
@@ -34,7 +35,7 @@ func DelKeys(baseMap *sync.Map, keys []interface{}) error {
 */
 func MergeSyncMap(fromMap, toMap *sync.Map) error {
 	if nil == fromMap || nil == toMap {
-		return Errorf("fromMap or toMap cannot be null")
+		return perr.SystemErrorf("fromMap or toMap cannot be null")
 	}
 
 	fromMap.Range(func(key, value interface{}) bool {
