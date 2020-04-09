@@ -69,7 +69,7 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 
 	// 发请求
 	resp := new(fasthttp.Response)
-	err := fasthttp.Do(req, resp)
+	err := serv.fastClient.Do(req, resp)
 	if nil != err {
 		return nil, "", perr.SystemErrorf("failed to send request to downstream service => %v", err)
 	}

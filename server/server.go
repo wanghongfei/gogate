@@ -14,6 +14,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"time"
 )
 
 type Server struct {
@@ -40,6 +41,7 @@ type Server struct {
 
 	// fasthttp对象
 	fastServ 				*fasthttp.Server
+	fastClient				*fasthttp.Client
 
 	isStarted 				bool
 
@@ -107,8 +109,14 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 		Handler:      serv.HandleRequest,
 		LogAllErrors: true,
 	}
-
 	serv.fastServ = fastServ
+
+	// 创建http client
+	serv.fastClient = &fasthttp.Client{
+		MaxConnsPerHost:               maxConn,
+		ReadTimeout:                   time.Duration(conf.App.ServerConfig.Timeout) * time.Millisecond,
+		WriteTimeout:                  time.Duration(conf.App.ServerConfig.Timeout) * time.Millisecond,
+	}
 
 	// 创建每个服务的限速器
 	serv.rebuildRateLimiter()

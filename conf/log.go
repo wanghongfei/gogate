@@ -32,7 +32,10 @@ func initRotateLog() {
 		}
 
 		// 创建日志目录
-		os.Mkdir(logConfig.Directory, os.ModePerm)
+		if !checkPathExist(logConfig.Directory) {
+			fmt.Printf("log dir %s does not exist, create\n", logConfig.Directory)
+			os.Mkdir(logConfig.Directory, os.ModePerm)
+		}
 
 		routateWriter, err := rotatelogs.New(
 			pwd + "/" + logConfig.FilePattern,
@@ -59,6 +62,15 @@ func initRotateLog() {
 	Log = logger.Sugar()
 
 	Log.Info("log initialized")
+}
+
+func checkPathExist(path string) bool {
+	_, err := os.Stat(path)
+	if nil == err {
+		return true
+	}
+
+	return false
 }
 
 func timeEncodeFunc(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
