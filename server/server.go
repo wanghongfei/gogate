@@ -170,7 +170,8 @@ func (serv *Server) Start() error {
 		}
 
 	} else {
-		return utils.Errorf("both eureka and consul are disabled")
+		Log.Infof("no register center enabled, use static mode")
+		serv.discoveryClient = discovery.DoNothingClient
 	}
 
 	// 启动注册表定时更新
@@ -209,6 +210,10 @@ func (serv *Server) ReloadRoute() error {
 	}
 
 	return nil
+}
+
+func (serv *Server) IsInStaticMode() bool {
+	return serv.discoveryClient == discovery.DoNothingClient
 }
 
 func (serv *Server) recordTraffic(servName string, success bool) {

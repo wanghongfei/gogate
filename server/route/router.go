@@ -47,7 +47,7 @@ func (info *ServiceInfo) String() string {
 func NewRouter(path string) (*Router, error) {
 	matcher, servInfos, err := loadRoute(path)
 	if nil != err {
-		return nil, utils.Errorf("failed to load route info => %e", err)
+		return nil, utils.Errorf("failed to load route info => %w", err)
 	}
 
 

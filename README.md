@@ -257,6 +257,7 @@ server:
   # gateway请求后端服务超时时间, 毫秒
   timeout: 3000
 
+# 如果eureka, consul都没有启动, 则进入静态模式, 不访问注册中心
 eureka:
   enable: false
   # eureka配置文件名
