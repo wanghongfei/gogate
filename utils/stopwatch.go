@@ -2,17 +2,17 @@ package utils
 
 import "time"
 
-type stopwatch struct {
+type Stopwatch struct {
 	start	time.Time
 }
 
 // 创建一个计时器
-func NewStopwatch() *stopwatch {
-	return &stopwatch{time.Now()}
+func NewStopwatch() *Stopwatch {
+	return &Stopwatch{time.Now()}
 }
 
 // 返回从上次调用Record()到现的经过的毫秒数
-func (st *stopwatch) Record() int64 {
+func (st *Stopwatch) Record() int64 {
 	now := time.Now()
 	diff := now.Sub(st.start).Nanoseconds() / 1000 / 1000
 

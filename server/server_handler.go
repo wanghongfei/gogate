@@ -12,6 +12,8 @@ const (
 	SERVICE_NAME = "key_service_name"
 	REQUEST_PATH = "key_request_path"
 	ROUTE_INFO   = "key_route_info"
+	REQUEST_ID   = "key_req_id"
+	STOPWATCH    = "key_stopwatch"
 
 	RELOAD_PATH = "/_mgr/reload"
 )
@@ -22,13 +24,18 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 
 	// 计时器
 	sw := utils.NewStopwatch()
+	ctx.SetUserValue(STOPWATCH, sw)
 
 
 	// 取出请求path
 	path := string(ctx.Path())
 	ctx.SetUserValue(REQUEST_PATH, path)
 
-	// log.Info("request received: %s %s", string(ctx.Method()), path)
+	// 生成唯一id
+	reqId := utils.GenerateUuid()
+	ctx.SetUserValue(REQUEST_ID, reqId)
+
+	Log.Infof("request %d received, method = %s, path = %s, body = %s", reqId, string(ctx.Method()), path, string(ctx.Request.Body()))
 
 	// 处理reload请求
 	if path == RELOAD_PATH {
@@ -63,16 +70,17 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 		if nil != bizErr {
 			// 业务错误
 			responseMessage = bizErr.Msg
-			Log.Error(bizErr.ErrorWithEnv())
+			Log.Errorf("request %d, %s", reqId, bizErr.ErrorWithEnv())
 
 		} else if nil != sysErr {
 			// 系统错误
 			responseMessage = "system error"
-			Log.Error(sysErr.ErrorWithEnv())
+			Log.Errorf("request %d, %s", reqId, sysErr.ErrorWithEnv())
+			ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 
 		} else {
 			responseMessage = err.Error()
-			Log.Error(err)
+			Log.Errorf("request %d, %s", reqId, err)
 		}
 
 		NewResponse(path, responseMessage).Send(ctx)
@@ -89,22 +97,21 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	timeCost := sw.Record()
-	resp.Header.Add("Time", strconv.FormatInt(timeCost, 10))
-	resp.Header.Set("Server", "gogate")
-
-	Log.Infof("request %s finished, time = %vms, response = %s", path, timeCost, resp.Body())
-
 	// 返回响应
-	sendResponse(ctx, resp)
+	sendResponse(ctx, resp, reqId, sw)
 
 }
 
-func sendResponse(ctx *fasthttp.RequestCtx, resp *fasthttp.Response) {
+func sendResponse(ctx *fasthttp.RequestCtx, resp *fasthttp.Response, reqId int64, timer *utils.Stopwatch) {
 	// copy header
 	ctx.Response.Header = resp.Header
 	ctx.Response.Header.Add("proxy", "gogate")
 
+	timeCost := timer.Record()
+	resp.Header.Add("Time", strconv.FormatInt(timeCost, 10))
+	resp.Header.Set("Server", "gogate")
+
+	Log.Infof("request %d finished, cost = %dms, statusCode = %d, response = %s", reqId, timeCost, ctx.Response.StatusCode(), string(resp.Body()))
 	ctx.Write(resp.Body())
 }
 

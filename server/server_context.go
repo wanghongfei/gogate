@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/valyala/fasthttp"
 	"github.com/wanghongfei/gogate/server/route"
+	"github.com/wanghongfei/gogate/utils"
 )
 
 // 从请求上下文中取出*ServiceInfo
@@ -33,4 +34,22 @@ func GetStringFromUserValue(ctx *fasthttp.RequestCtx, key string) string {
 	}
 
 	return str
+}
+
+func GetInt64FromUserValue(ctx *fasthttp.RequestCtx, key string) int64 {
+	val := ctx.UserValue(key)
+	if nil == val {
+		return -1
+	}
+
+	num, ok := val.(int64)
+	if !ok {
+		return -1
+	}
+
+	return num
+}
+
+func GetStopWatchFromUserValue(ctx *fasthttp.RequestCtx) *utils.Stopwatch {
+	return ctx.UserValue(STOPWATCH).(*utils.Stopwatch)
 }

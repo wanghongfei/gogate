@@ -13,6 +13,7 @@ replace golang.org/x/sys => github.com/golang/sys v0.0.0-20190412213103-97732733
 require go.uber.org/zap v1.13.0
 
 require (
+	github.com/bwmarrin/snowflake v0.3.0
 	github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239 // indirect
 	github.com/hashicorp/consul/api v1.0.1
 	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
