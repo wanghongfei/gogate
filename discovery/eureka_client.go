@@ -19,6 +19,9 @@ var ticker *time.Ticker
 var tickerCloseChan chan struct{}
 
 type EurekaClient struct {
+	// 继承方法
+	*periodicalRefreshClient
+
 	client *eureka.Client
 
 	// 保存服务地址
@@ -33,7 +36,10 @@ func NewEurekaClient(confFile string) (Client, error) {
 		return nil, perr.SystemErrorf("failed to init eureka client => %w", err)
 	}
 
-	return &EurekaClient{client:c}, nil
+	euClient := &EurekaClient{client:c}
+	euClient.periodicalRefreshClient = newPeriodicalRefresh(euClient)
+
+	return euClient, nil
 }
 
 func (c *EurekaClient) Get(serviceId string) []*InstanceInfo {
@@ -155,12 +161,6 @@ func (c *EurekaClient) UnRegister() error {
 
 	Log.Info("done unregistration")
 	return nil
-}
-
-
-// 向eureka查询注册列表, 刷新本地列表
-func (c *EurekaClient) StartPeriodicalRefresh() error {
-	return startPeriodicalRefresh(c)
 }
 
 func (c *EurekaClient) stopHeartbeat() {

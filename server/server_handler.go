@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"github.com/valyala/fasthttp"
 	. "github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/perr"
@@ -99,22 +98,6 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	// 返回响应
 	sendResponse(ctx, resp)
 
-}
-
-func convertErrorMessage(err error) string {
-	// 是否为系统错误
-	var sysErr *perr.SystemError
-	if errors.As(err, &sysErr) {
-		return "system error"
-	}
-
-	// 是业务错误
-	var bizErr *perr.BizError
-	if errors.As(err, &bizErr) {
-		return bizErr.Msg
-	}
-
-	return err.Error()
 }
 
 func sendResponse(ctx *fasthttp.RequestCtx, resp *fasthttp.Response) {

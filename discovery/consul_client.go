@@ -10,6 +10,9 @@ import (
 )
 
 type ConsulClient struct {
+	// 继承方法
+	*periodicalRefreshClient
+
 	client *api.Client
 
 	// 保存服务地址
@@ -29,7 +32,10 @@ func NewConsulClient() (Client, error) {
 		return nil, perr.SystemErrorf("failed to init consule client => %w", err)
 	}
 
-	return &ConsulClient{client:c}, nil
+	consuleClient := &ConsulClient{client:c}
+	consuleClient.periodicalRefreshClient = newPeriodicalRefresh(consuleClient)
+
+	return consuleClient, nil
 }
 
 func (c *ConsulClient) GetInternalRegistryStore() *InsInfoArrSyncMap {
@@ -49,9 +55,6 @@ func (c *ConsulClient) Get(serviceId string) []*InstanceInfo {
 	return instance
 }
 
-func (c *ConsulClient) StartPeriodicalRefresh() error {
-	return startPeriodicalRefresh(c)
-}
 
 func (c *ConsulClient) QueryServices() ([]*InstanceInfo, error) {
 	servMap, err := c.client.Agent().Services()
