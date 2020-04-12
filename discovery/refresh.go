@@ -33,7 +33,7 @@ func (r *periodicalRefreshClient) StartPeriodicalRefresh() error {
 			if nil != err {
 				// 如果是第一次查询失败, 退出程序
 				if isBootstrap {
-					refreshRegistryChan <- perr.SystemErrorf("failed to refresh registry => %w", err)
+					refreshRegistryChan <- perr.WrapSystemErrorf(err, "failed to refresh registry")
 					return
 
 				} else {
@@ -59,7 +59,7 @@ func (r *periodicalRefreshClient) doRefresh() error {
 	instances, err := r.client.QueryServices()
 
 	if nil != err {
-		return perr.SystemErrorf("failed to refresh registry => %w", err)
+		return perr.WrapSystemErrorf(err, "failed to query all services")
 	}
 
 	if nil == instances {

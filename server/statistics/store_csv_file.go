@@ -29,7 +29,7 @@ func (fs *CsvFileTraficInfoStore) Send(info *TraficInfo) error {
 	buf := fs.ToCsv(info)
 	f, err := fs.getFile(info.ServiceId)
 	if nil != err {
-		return perr.SystemErrorf("failed to getFile => %w", err)
+		return perr.WrapSystemErrorf(nil, "failed to getFile => %w")
 	}
 
 	buf.WriteTo(f)
@@ -48,7 +48,7 @@ func (fs *CsvFileTraficInfoStore) Close() error {
 	}
 
 	if "" != errMsg {
-		return perr.SystemErrorf(errMsg)
+		return perr.WrapSystemErrorf(nil, errMsg)
 	}
 
 	return nil
@@ -62,7 +62,7 @@ func (fs *CsvFileTraficInfoStore) getFile(servId string) (*os.File, error) {
 		fName := fs.genFileName(servId)
 		f, err := os.OpenFile(fName, os.O_CREATE | os.O_APPEND | os.O_RDWR, 0644)
 		if nil != err {
-			return nil, perr.SystemErrorf("failed to open file => %w", err)
+			return nil, perr.WrapSystemErrorf(err, "failed to open file")
 		}
 
 		logFile = f

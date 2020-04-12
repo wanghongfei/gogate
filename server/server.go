@@ -70,11 +70,11 @@ const (
  */
 func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Server, error) {
 	if "" == host {
-		return nil, perr.SystemErrorf("invalid host %s", host)
+		return nil, perr.WrapSystemErrorf(nil, "invalid host %s", host)
 	}
 
 	if port <= 0 || port > 65535 {
-		return nil, perr.SystemErrorf("invalid port %d", port)
+		return nil, perr.WrapSystemErrorf(nil, "invalid port %d", port)
 	}
 
 	if maxConn <= 0 {
@@ -84,7 +84,7 @@ func NewGatewayServer(host string, port int, routePath string, maxConn int) (*Se
 	// 创建router
 	router, err := route.NewRouter(routePath)
 	if nil != err {
-		return nil, perr.SystemErrorf("failed to create router => %w", err)
+		return nil, perr.WrapSystemErrorf(err, "failed to create router")
 	}
 
 	// 创建Server对象
@@ -142,7 +142,7 @@ func (serv *Server) Start() error {
 	// 监听端口
 	listen, err := net.Listen("tcp", serv.host + ":" + strconv.Itoa(serv.port))
 	if nil != err {
-		return perr.SystemErrorf("failed to listen at %s:%d => %w", serv.host, serv.port, err)
+		return perr.WrapSystemErrorf(nil, "failed to listen at %s:%d => %w", serv.host, serv.port, err)
 	}
 
 	// 是否启用优雅关闭功能
@@ -155,7 +155,7 @@ func (serv *Server) Start() error {
 
 	bothEnabled := conf.App.EurekaConfig.Enable && conf.App.ConsulConfig.Enable
 	if bothEnabled {
-		return perr.SystemErrorf("eureka and consul are both enabled")
+		return perr.WrapSystemErrorf(nil, "eureka and consul are both enabled")
 	}
 
 	// 初始化服务注册模块
@@ -163,7 +163,7 @@ func (serv *Server) Start() error {
 		Log.Info("eureka enabled")
 		serv.discoveryClient, err = discovery.NewEurekaClient(conf.App.EurekaConfig.ConfigFile)
 		if nil != err {
-			return perr.SystemErrorf("%w", err)
+			return err
 		}
 
 		// 注册自己, 启动心跳
@@ -174,7 +174,7 @@ func (serv *Server) Start() error {
 		// 初始化consul
 		serv.discoveryClient, err = discovery.NewConsulClient()
 		if nil != err {
-			return perr.SystemErrorf("%w", err)
+			return err
 		}
 
 	} else {
@@ -185,7 +185,7 @@ func (serv *Server) Start() error {
 	// 启动注册表定时更新
 	err = serv.discoveryClient.StartPeriodicalRefresh()
 	if nil != err {
-		return perr.SystemErrorf("failed to start discovery module => %w", err)
+		return perr.WrapSystemErrorf(err, "failed to start discovery module")
 	}
 
 	// 启动http server
@@ -200,7 +200,7 @@ func (serv *Server) Shutdown() error {
 
 	err := serv.fastServ.Shutdown()
 	if nil != err {
-		return perr.SystemErrorf("failed to shutdown server => %w", err)
+		return perr.WrapSystemErrorf(err, "failed to shutdown server")
 	}
 
 	return nil
@@ -214,7 +214,7 @@ func (serv *Server) ReloadRoute() error {
 	Log.Info("route info reloaded")
 
 	if nil != err {
-		return perr.SystemErrorf("failed to reload route => %w", err)
+		return perr.WrapSystemErrorf(err, "failed to reload route")
 	}
 
 	return nil

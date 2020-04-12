@@ -28,7 +28,7 @@ func NewRedisClient(addr string, poolSize int) *RedisClient {
 func (crd *RedisClient) GetString(key string) (string, error) {
 	resp := crd.connPool.Cmd("get", key)
 	if nil != resp.Err {
-		return "", perr.SystemErrorf("failed to GetString => %w", resp.Err)
+		return "", perr.WrapSystemErrorf(resp.Err, "failed to GetString")
 	}
 
 	return resp.Str()
@@ -55,7 +55,7 @@ func (crd *RedisClient) IsConnected() bool {
 func (crd *RedisClient) Connect() error {
 	conn, err := pool.New("tcp", crd.addr, crd.poolSize)
 	if err != nil {
-		return perr.SystemErrorf("failed to connect to redis => %w", err)
+		return perr.WrapSystemErrorf(err, "failed to connect to redis")
 	}
 
 	crd.connPool = conn

@@ -64,23 +64,23 @@ func (serv *Server) HandleRequest(ctx *fasthttp.RequestCtx) {
 	resp, logRecordName, err := serv.sendRequest(ctx, newReq)
 	// 错误处理
 	if nil != err {
+		err = perr.WrapBizErrorf(err, "anther layer")
+		Log.Errorf("request %d, %s", reqId, perr.EnvMsg(err))
+
 		// 解析错误类型
 		bizErr, sysErr, _ := perr.ParseError(err)
 		var responseMessage string
 		if nil != bizErr {
 			// 业务错误
-			responseMessage = bizErr.Msg
-			Log.Errorf("request %d, %s", reqId, bizErr.ErrorWithEnv())
+			responseMessage = bizErr.BottomMsg()
 
 		} else if nil != sysErr {
 			// 系统错误
 			responseMessage = "system error"
-			Log.Errorf("request %d, %s", reqId, sysErr.ErrorWithEnv())
 			ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 
 		} else {
 			responseMessage = err.Error()
-			Log.Errorf("request %d, %s", reqId, err)
 		}
 
 		NewResponse(path, responseMessage).Send(ctx)

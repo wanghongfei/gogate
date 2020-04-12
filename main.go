@@ -2,6 +2,7 @@ package main
 
 import (
 	. "github.com/wanghongfei/gogate/conf"
+	"github.com/wanghongfei/gogate/perr"
 	serv "github.com/wanghongfei/gogate/server"
 	"os"
 )
@@ -35,7 +36,8 @@ func main() {
 
 func checkErrorExit(err error, exit bool) {
 	if nil != err {
-		Log.Error(err)
+		Log.Error(perr.EnvMsg(err))
+
 		if exit {
 			os.Exit(1)
 		}

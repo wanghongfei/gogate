@@ -21,7 +21,7 @@ type RedisRateLimiter struct {
 
 func NewRedisRateLimiter(client *redis.RedisClient, luaPath string, qps int, serviceId string) (*RedisRateLimiter, error) {
 	if nil == client {
-		return nil, perr.SystemErrorf("redis client cannot be nil")
+		return nil, perr.WrapSystemErrorf(nil, "redis client cannot be nil")
 	}
 
 	if qps < 1 {
@@ -31,7 +31,7 @@ func NewRedisRateLimiter(client *redis.RedisClient, luaPath string, qps int, ser
 	if !client.IsConnected() {
 		err := client.Connect()
 		if nil != err {
-			return nil, perr.SystemErrorf("failed to connect to redis => %w", err)
+			return nil, perr.WrapSystemErrorf(err, "failed to connect to redis")
 		}
 	}
 

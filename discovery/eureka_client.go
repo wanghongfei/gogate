@@ -33,7 +33,7 @@ type EurekaClient struct {
 func NewEurekaClient(confFile string) (Client, error) {
 	c, err := eureka.NewClientFromFile(confFile)
 	if nil != err {
-		return nil, perr.SystemErrorf("failed to init eureka client => %w", err)
+		return nil, perr.WrapSystemErrorf(err, "failed to init eureka client")
 	}
 
 	euClient := &EurekaClient{client:c}
@@ -64,7 +64,7 @@ func (c *EurekaClient) SetInternalRegistryStore(registry *InsInfoArrSyncMap) {
 func (c *EurekaClient) QueryServices() ([]*InstanceInfo, error) {
 	apps, err := c.client.GetApplications()
 	if nil != err {
-		return nil, perr.SystemErrorf("faield to query eureka => %w", err)
+		return nil, perr.WrapSystemErrorf(err, "faield to query eureka")
 	}
 
 	var instances []*InstanceInfo
@@ -102,7 +102,7 @@ func (c *EurekaClient) QueryServices() ([]*InstanceInfo, error) {
 func (c *EurekaClient) Register() error {
 	ip, err := utils.GetFirstNoneLoopIp()
 	if nil != err {
-		return perr.SystemErrorf("failed to get first none loop ip => %w", err)
+		return perr.WrapSystemErrorf(err, "failed to get first none loop ip")
 	}
 
 
@@ -125,7 +125,7 @@ func (c *EurekaClient) Register() error {
 
 	err = c.client.RegisterInstance(conf.App.ServerConfig.AppName, gogateApp)
 	if nil != err {
-		return perr.SystemErrorf("failed to register to eureka => %w", err)
+		return perr.WrapSystemErrorf(err, "failed to register to eureka")
 	}
 
 	// 心跳
@@ -156,7 +156,7 @@ func (c *EurekaClient) UnRegister() error {
 	err := c.client.UnregisterInstance("gogate", instanceId)
 
 	if nil != err {
-		return perr.SystemErrorf("failed to unregister => %w", err)
+		return perr.WrapSystemErrorf(err, "failed to unregister")
 	}
 
 	Log.Info("done unregistration")

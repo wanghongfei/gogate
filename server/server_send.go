@@ -26,7 +26,7 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 	// 需要从注册列表中查询地址
 	if info.Id != "" {
 		if serv.IsInStaticMode() {
-			return nil, "", perr.BizErrorf("no static address found for this service")
+			return nil, "", perr.WrapBizErrorf(nil, "no static address found for this service")
 		}
 
 		logRecordName = info.Id
@@ -40,7 +40,7 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 		// 取出指定服务的所有实例
 		serviceInstances := serv.discoveryClient.Get(appId)
 		if nil == serviceInstances {
-			return nil, "", perr.BizErrorf("no instance %s for service (service is offline)", appId)
+			return nil, "", perr.WrapBizErrorf(nil, "no instance %s for service (service is offline)", appId)
 		}
 
 		// 按version过滤
@@ -48,7 +48,7 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 			serviceInstances = filterWithVersion(serviceInstances, version)
 			if 0 == len(serviceInstances) {
 				// 此version下没有实例
-				return nil, "", perr.BizErrorf("no instance %s:%s for service", appId, version)
+				return nil, "", perr.WrapBizErrorf(nil, "no instance %s:%s for service", appId, version)
 			}
 		}
 
@@ -71,7 +71,7 @@ func (serv *Server) sendRequest(ctx *fasthttp.RequestCtx, req *fasthttp.Request)
 	resp := new(fasthttp.Response)
 	err := serv.fastClient.Do(req, resp)
 	if nil != err {
-		return nil, "", perr.SystemErrorf("failed to send request to downstream service => %v", err)
+		return nil, "", perr.WrapSystemErrorf(nil, "failed to send request to downstream service")
 	}
 
 	return resp, logRecordName, nil

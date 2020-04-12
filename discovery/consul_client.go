@@ -29,7 +29,7 @@ func NewConsulClient() (Client, error) {
 
 	c, err := api.NewClient(cfg)
 	if nil != err {
-		return nil, perr.SystemErrorf("failed to init consule client => %w", err)
+		return nil, perr.WrapSystemErrorf(err, "failed to init consule client")
 	}
 
 	consuleClient := &ConsulClient{client:c}
@@ -65,7 +65,7 @@ func (c *ConsulClient) QueryServices() ([]*InstanceInfo, error) {
 	// 查出所有健康实例
 	healthList, _, err := c.client.Health().State("passing", &api.QueryOptions{})
 	if nil != err {
-		return nil, perr.SystemErrorf("failed to query consul => %w", err)
+		return nil, perr.WrapSystemErrorf(err, "failed to query consul")
 	}
 
 	instances := make([]*InstanceInfo, 0, 10)
@@ -101,9 +101,9 @@ func (c *ConsulClient) QueryServices() ([]*InstanceInfo, error) {
 }
 
 func (c *ConsulClient) Register() error {
-	return perr.SystemErrorf("not implement yet")
+	return perr.WrapSystemErrorf(nil, "not implement yet")
 }
 
 func (c *ConsulClient) UnRegister() error {
-	return perr.SystemErrorf("not implement yet")
+	return perr.WrapSystemErrorf(nil, "not implement yet")
 }
