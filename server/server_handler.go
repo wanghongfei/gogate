@@ -5,6 +5,7 @@ import (
 	. "github.com/wanghongfei/gogate/conf"
 	"github.com/wanghongfei/gogate/perr"
 	"github.com/wanghongfei/gogate/utils"
+	"runtime"
 	"strconv"
 )
 
@@ -148,7 +149,11 @@ func processPanic(ctx *fasthttp.RequestCtx, serv *Server) {
 
 func recoverPanic(ctx *fasthttp.RequestCtx, serv *Server) {
 	if r := recover(); r != nil {
-		Log.Errorf("panic: %v", r)
+		// 日志记录调用栈
+		stackBuf := make([]byte, 1024)
+		bufLen := runtime.Stack(stackBuf, false)
+		Log.Errorf("panic: %s", string(stackBuf[0:bufLen]))
+
 		processPanic(ctx, serv)
 	}
 }
